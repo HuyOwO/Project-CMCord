@@ -1,6 +1,6 @@
 # Bước 3 – Persona & User Journey Map
 
-## 📌 Tổng quan dự án
+## 📌 Tổng quan dự án.
 
 **CMCord** là ứng dụng chat dành riêng cho sinh viên, lấy cảm hứng từ Discord, hỗ trợ giao tiếp nhóm, chia sẻ tài liệu và tổ chức học tập theo kênh (channel).
 
