@@ -4,6 +4,12 @@ const ServerModel = require('../models/Server');
 // GET /api/servers/:serverId/channels
 const getChannels = async (req, res) => {
   try {
+    const server = await ServerModel.findById(req.params.serverId);
+    if (!server) return res.status(404).json({ success: false, message: 'Server not found' });
+
+    const isMember = server.members.some(m => m.user.equals(req.user._id));
+    if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
+
     const channels = await Channel.find({ server: req.params.serverId });
     res.json({ success: true, data: channels });
   } catch (err) {
@@ -39,7 +45,9 @@ const deleteChannel = async (req, res) => {
     if (!member || member.role !== 'admin')
       return res.status(403).json({ success: false, message: 'Only admin can delete channels' });
 
-    await Channel.findByIdAndDelete(req.params.id);
+    const deleted = await Channel.findOneAndDelete({ _id: req.params.id, server: req.params.serverId });
+    if (!deleted) return res.status(404).json({ success: false, message: 'Channel not found in this server' });
+
     res.json({ success: true, message: 'Channel deleted' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
