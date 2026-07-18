@@ -1,6 +1,6 @@
 # Bước 6 – Product Backlog & Feature Identification
 
-## 📌 Quy ước
+## 📌 Quy ước:
 
 ### Độ ưu tiên (MoSCoW)
 | Ký hiệu | Phân loại | Ý nghĩa |

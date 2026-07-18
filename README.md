@@ -1,6 +1,6 @@
 # CMCord 💬
 
-Ứng dụng chat real-time lấy cảm hứng từ Discord, xây dựng dành cho sinh viên.
+Ứng dụng chat real-time lấy cảm hứng từ Discord
 
 ## Tech Stack
 
