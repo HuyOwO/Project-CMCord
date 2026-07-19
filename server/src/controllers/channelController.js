@@ -1,5 +1,6 @@
 const Channel = require('../models/Channel');
 const ServerModel = require('../models/Server');
+const { getRole } = require('../utils/permissions');
 
 // GET /api/servers/:serverId/channels
 const getChannels = async (req, res) => {
@@ -24,8 +25,8 @@ const createChannel = async (req, res) => {
     if (!server) return res.status(404).json({ success: false, message: 'Server not found' });
 
     const member = server.members.find(m => m.user.equals(req.user._id));
-    if (!member || member.role !== 'admin')
-      return res.status(403).json({ success: false, message: 'Only admin can create channels' });
+    if (!member || getRole(server, req.user._id) !== 'owner')
+      return res.status(403).json({ success: false, message: 'Only owner can create channels' });
 
     const name = req.body.name?.toLowerCase().replace(/\s+/g, '-');
     if (!name) return res.status(400).json({ success: false, message: 'Channel name is required' });
@@ -37,13 +38,39 @@ const createChannel = async (req, res) => {
   }
 };
 
+// PATCH /api/servers/:serverId/channels/:id  { name }
+const updateChannel = async (req, res) => {
+  try {
+    const server = await ServerModel.findById(req.params.serverId);
+    if (!server) return res.status(404).json({ success: false, message: 'Server not found' });
+
+    const member = server.members.find(m => m.user.equals(req.user._id));
+    if (!member || getRole(server, req.user._id) !== 'owner')
+      return res.status(403).json({ success: false, message: 'Only owner can rename channels' });
+
+    const name = req.body.name?.toLowerCase().replace(/\s+/g, '-');
+    if (!name) return res.status(400).json({ success: false, message: 'Channel name is required' });
+
+    const channel = await Channel.findOneAndUpdate(
+      { _id: req.params.id, server: req.params.serverId },
+      { name },
+      { new: true }
+    );
+    if (!channel) return res.status(404).json({ success: false, message: 'Channel not found in this server' });
+
+    res.json({ success: true, data: channel });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // DELETE /api/servers/:serverId/channels/:id
 const deleteChannel = async (req, res) => {
   try {
     const server = await ServerModel.findById(req.params.serverId);
     const member = server?.members.find(m => m.user.equals(req.user._id));
-    if (!member || member.role !== 'admin')
-      return res.status(403).json({ success: false, message: 'Only admin can delete channels' });
+    if (!member || getRole(server, req.user._id) !== 'owner')
+      return res.status(403).json({ success: false, message: 'Only owner can delete channels' });
 
     const deleted = await Channel.findOneAndDelete({ _id: req.params.id, server: req.params.serverId });
     if (!deleted) return res.status(404).json({ success: false, message: 'Channel not found in this server' });
@@ -54,4 +81,4 @@ const deleteChannel = async (req, res) => {
   }
 };
 
-module.exports = { getChannels, createChannel, deleteChannel };
+module.exports = { getChannels, createChannel, updateChannel, deleteChannel };

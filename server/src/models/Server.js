@@ -8,8 +8,12 @@ const serverSchema = new mongoose.Schema({
   owner:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   members: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    role: { type: String, enum: ['admin', 'member'], default: 'member' },
+    // 'owner' KHÔNG nằm trong enum này — chủ server luôn được xác định qua field `owner` phía trên.
+    role: { type: String, enum: ['moderator', 'member'], default: 'member' },
+    // Biệt danh riêng của user này TRONG server này (khác với username toàn cục).
+    nickname: { type: String, default: null, trim: true, maxlength: 32 },
   }],
+  bannedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   inviteCode: { type: String, unique: true, default: () => uuidv4().slice(0, 8) },
 }, { timestamps: true });
 

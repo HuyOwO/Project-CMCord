@@ -2,25 +2,41 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { serverService, channelService } from '../services';
 import useAuth from '../hooks/useAuth';
+import useServerSelect from '../hooks/useServerSelect';
+import ServerSidebar from '../components/server/ServerSidebar';
+import ChannelSidebar from '../components/channel/ChannelSidebar';
+import CreateChannelModal from '../components/channel/CreateChannelModal';
+import InviteModal from '../components/server/InviteModal';
+import JoinServerModal from '../components/server/JoinServerModal';
+import ServerSettingsModal from '../components/server/ServerSettingsModal';
+import NicknameModal from '../components/server/NicknameModal';
+import Modal from '../components/common/Modal';
+import { getRole, getDisplayName } from '../utils/permissions';
 
 export default function HomePage() {
   const { user, logout }    = useAuth();
   const navigate             = useNavigate();
+  const goToServer           = useServerSelect();
   const [servers, setServers]     = useState([]);
   const [selected, setSelected]   = useState(null);
   const [channels, setChannels]   = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName]       = useState('');
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [showJoin, setShowJoin]     = useState(false);
+  const [renamingChannel, setRenamingChannel] = useState(null);
+  const [showServerSettings, setShowServerSettings] = useState(false);
+  const [showNickname, setShowNickname] = useState(false);
 
   useEffect(() => {
     serverService.getAll().then(setServers);
   }, []);
 
-  const selectServer = async (srv) => {
+  // Chọn 1 server: highlight icon + nhảy vào channel đầu tiên (logic nhảy nằm trong useServerSelect)
+  const handleSelectServer = (srv) => {
     setSelected(srv);
-    const chs = await channelService.getAll(srv._id);
-    setChannels(chs);
-    if (chs.length > 0) navigate(`/channels/${srv._id}/${chs[0]._id}`);
+    goToServer(srv);
   };
 
   const createServer = async (e) => {
@@ -30,66 +46,139 @@ export default function HomePage() {
     setServers(prev => [...prev, srv]);
     setNewName('');
     setShowCreate(false);
-    selectServer(srv);
+    handleSelectServer(srv);
   };
+
+  const canCreateChannel = getRole(selected, user?._id) === 'owner';
+
+  const createChannel = async (name) => {
+    const ch = await channelService.create(selected._id, name);
+    setChannels(prev => [...prev, ch]);
+    setShowCreateChannel(false);
+    navigate(`/channels/${selected._id}/${ch._id}`);
+  };
+
+  const handleRenameChannel = async (name) => {
+    const updated = await channelService.update(selected._id, renamingChannel._id, name);
+    setChannels(prev => prev.map(c => c._id === updated._id ? updated : c));
+    setRenamingChannel(null);
+  };
+
+  const handleDeleteChannel = async (channel) => {
+    if (!window.confirm(`Xoá channel #${channel.name}? Toàn bộ tin nhắn trong đó cũng sẽ mất.`)) return;
+    await channelService.remove(selected._id, channel._id);
+    setChannels(prev => prev.filter(c => c._id !== channel._id));
+  };
+
+  // Tham gia 1 server khác bằng mã mời -> nhảy vào channel đầu tiên của server đó
+  const handleJoinServer = async (inviteCode) => {
+    const srv = await serverService.join(inviteCode);
+    setServers(prev => [...prev, srv]);
+    const chs = await channelService.getAll(srv._id);
+    setShowJoin(false);
+    if (chs.length > 0) navigate(`/channels/${srv._id}/${chs[0]._id}`);
+  };
+
+  const handleUpdateServer = async ({ name, description }) => {
+    const updated = await serverService.update(selected._id, { name, description });
+    setSelected(updated);
+    setServers(prev => prev.map(s => s._id === updated._id ? updated : s));
+    setShowServerSettings(false);
+  };
+
+  const handleDeleteServer = async () => {
+    if (!window.confirm(`Xoá vĩnh viễn server "${selected?.name}"? Hành động này KHÔNG thể hoàn tác.`)) return;
+    await serverService.remove(selected._id);
+    setServers(prev => prev.filter(s => s._id !== selected._id));
+    setSelected(null);
+    setChannels([]);
+  };
+
+  const handleUpdateNickname = async (nickname) => {
+    const updated = await serverService.updateNickname(selected._id, nickname);
+    setSelected(updated);
+    setShowNickname(false);
+  };
+
+  const handleLeaveServer = async () => {
+    if (!window.confirm(`Rời khỏi server "${selected?.name}"?`)) return;
+    await serverService.leave(selected._id);
+    setServers(prev => prev.filter(s => s._id !== selected._id));
+    setSelected(null);
+    setChannels([]);
+  };
+
+  const myNickname = selected?.members?.find(m => (m.user?._id || m.user) === user?._id)?.nickname || '';
+  const myDisplayName = getDisplayName(selected, user?._id, user?.username);
 
   return (
     <div className="flex h-screen bg-cm-bg overflow-hidden">
-      {/* Server list sidebar */}
-      <div className="w-[72px] bg-cm-bg flex flex-col items-center py-3 gap-2 border-r border-cm-border">
-        {servers.map(srv => (
-          <button
-            key={srv._id}
-            onClick={() => selectServer(srv)}
-            title={srv.name}
-            className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all hover:rounded-xl ${
-              selected?._id === srv._id ? 'bg-cm-accent rounded-xl' : 'bg-cm-sidebar hover:bg-cm-accent'
-            }`}
-          >
-            {srv.name[0].toUpperCase()}
-          </button>
-        ))}
+      <ServerSidebar
+        servers={servers}
+        activeServerId={selected?._id}
+        onSelectServer={handleSelectServer}
+        onCreateClick={() => setShowCreate(true)}
+        onJoinClick={() => setShowJoin(true)}
+      />
 
-        {/* Nút tạo server */}
-        <button
-          onClick={() => setShowCreate(true)}
-          className="w-12 h-12 rounded-full bg-cm-sidebar hover:bg-cm-green hover:rounded-xl text-cm-green hover:text-white flex items-center justify-center text-2xl transition-all"
-          title="Tạo server mới"
-        >
-          +
-        </button>
-      </div>
+      <ChannelSidebar
+        server={selected}
+        channels={channels}
+        activeChannelId={null}
+        onSelectChannel={(ch) => navigate(`/channels/${selected._id}/${ch._id}`)}
+        user={user}
+        onLogout={logout}
+        canCreateChannel={canCreateChannel}
+        onCreateChannelClick={() => setShowCreateChannel(true)}
+        onInviteClick={() => setShowInvite(true)}
+        onRenameChannelClick={(ch) => setRenamingChannel(ch)}
+        onDeleteChannelClick={handleDeleteChannel}
+        isOwner={canCreateChannel}
+        onSettingsClick={() => setShowServerSettings(true)}
+        onNicknameClick={() => setShowNickname(true)}
+        onLeaveClick={handleLeaveServer}
+        displayName={myDisplayName}
+      />
 
-      {/* Channel sidebar */}
-      <div className="w-60 bg-cm-sidebar flex flex-col">
-        <div className="px-4 py-3 border-b border-cm-border font-semibold text-white text-sm">
-          {selected ? selected.name : 'Chọn một server'}
-        </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {channels.map(ch => (
-            <button
-              key={ch._id}
-              onClick={() => navigate(`/channels/${selected._id}/${ch._id}`)}
-              className="w-full text-left px-3 py-1.5 rounded text-cm-muted hover:bg-cm-input hover:text-cm-text text-sm flex items-center gap-1.5"
-            >
-              <span className="text-cm-muted">#</span> {ch.name}
-            </button>
-          ))}
-        </div>
+      <CreateChannelModal
+        isOpen={showCreateChannel}
+        onClose={() => setShowCreateChannel(false)}
+        onCreate={createChannel}
+      />
 
-        {/* User info */}
-        <div className="p-3 bg-cm-bg flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold">
-              {user?.username?.[0]?.toUpperCase()}
-            </div>
-            <span className="text-cm-text text-sm font-medium">{user?.username}</span>
-          </div>
-          <button onClick={logout} className="text-cm-muted hover:text-white text-xs">
-            Đăng xuất
-          </button>
-        </div>
-      </div>
+      <CreateChannelModal
+        isOpen={!!renamingChannel}
+        onClose={() => setRenamingChannel(null)}
+        onCreate={handleRenameChannel}
+        channel={renamingChannel}
+      />
+
+      <ServerSettingsModal
+        isOpen={showServerSettings}
+        onClose={() => setShowServerSettings(false)}
+        server={selected}
+        onSave={handleUpdateServer}
+        onDeleteServer={handleDeleteServer}
+      />
+
+      <NicknameModal
+        isOpen={showNickname}
+        onClose={() => setShowNickname(false)}
+        currentNickname={myNickname}
+        onSave={handleUpdateNickname}
+      />
+
+      <InviteModal
+        isOpen={showInvite}
+        onClose={() => setShowInvite(false)}
+        server={selected}
+      />
+
+      <JoinServerModal
+        isOpen={showJoin}
+        onClose={() => setShowJoin(false)}
+        onJoin={handleJoinServer}
+      />
 
       {/* Main content */}
       <div className="flex-1 bg-cm-surface flex items-center justify-center text-cm-muted">
@@ -97,29 +186,25 @@ export default function HomePage() {
       </div>
 
       {/* Modal tạo server */}
-      {showCreate && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setShowCreate(false)}>
-          <div className="bg-cm-sidebar rounded-lg p-6 w-80 shadow-xl" onClick={e => e.stopPropagation()}>
-            <h2 className="text-white font-bold text-lg mb-4">Tạo Server mới</h2>
-            <form onSubmit={createServer} className="space-y-3">
-              <input
-                autoFocus value={newName}
-                onChange={e => setNewName(e.target.value)}
-                placeholder="Tên server..."
-                className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
-              />
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-1.5 text-cm-muted hover:text-white text-sm">
-                  Hủy
-                </button>
-                <button type="submit" className="px-4 py-1.5 bg-cm-accent hover:bg-indigo-500 text-white text-sm rounded">
-                  Tạo
-                </button>
-              </div>
-            </form>
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)}>
+        <h2 className="text-white font-bold text-lg mb-4">Tạo Server mới</h2>
+        <form onSubmit={createServer} className="space-y-3">
+          <input
+            autoFocus value={newName}
+            onChange={e => setNewName(e.target.value)}
+            placeholder="Tên server..."
+            className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
+          />
+          <div className="flex gap-2 justify-end">
+            <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-1.5 text-cm-muted hover:text-white text-sm">
+              Hủy
+            </button>
+            <button type="submit" className="px-4 py-1.5 bg-cm-accent hover:bg-indigo-500 text-white text-sm rounded">
+              Tạo
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </div>
   );
 }

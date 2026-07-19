@@ -35,6 +35,30 @@ export const serverService = {
   remove: async (id) => {
     await api.delete(`/servers/${id}`);
   },
+  update: async (id, { name, description }) => {
+    const { data } = await api.patch(`/servers/${id}`, { name, description });
+    return data.data;
+  },
+  updateNickname: async (id, nickname) => {
+    const { data } = await api.patch(`/servers/${id}/nickname`, { nickname });
+    return data.data;
+  },
+  leave: async (id) => {
+    await api.delete(`/servers/${id}/leave`);
+  },
+  updateMemberRole: async (serverId, userId, role) => {
+    const { data } = await api.patch(`/servers/${serverId}/members/${userId}/role`, { role });
+    return data.data;
+  },
+  kickMember: async (serverId, userId) => {
+    await api.delete(`/servers/${serverId}/members/${userId}`);
+  },
+  banMember: async (serverId, userId) => {
+    await api.post(`/servers/${serverId}/bans/${userId}`);
+  },
+  unbanMember: async (serverId, userId) => {
+    await api.delete(`/servers/${serverId}/bans/${userId}`);
+  },
 };
 
 export const channelService = {
@@ -44,6 +68,10 @@ export const channelService = {
   },
   create: async (serverId, name) => {
     const { data } = await api.post(`/servers/${serverId}/channels`, { name });
+    return data.data;
+  },
+  update: async (serverId, channelId, name) => {
+    const { data } = await api.patch(`/servers/${serverId}/channels/${channelId}`, { name });
     return data.data;
   },
   remove: async (serverId, channelId) => {
@@ -61,6 +89,10 @@ export const messageService = {
     if (content) form.append('content', content);
     if (file) form.append('file', file);
     const { data } = await api.post(`/channels/${channelId}/messages`, form);
+    return data.data;
+  },
+  update: async (messageId, content) => {
+    const { data } = await api.patch(`/channels/messages/${messageId}`, { content });
     return data.data;
   },
   remove: async (messageId) => {

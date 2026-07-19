@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const Channel = require('../models/Channel');
 const ServerModel = require('../models/Server');
+const { getRole, canDeleteMessage } = require('../utils/permissions');
 // GET /api/channels/:channelId/messages?page=1&limit=50
 const getMessages = async (req, res) => {
   try {
@@ -55,19 +56,56 @@ const sendMessage = async (req, res) => {
   }
 };
 
+// PATCH /api/messages/:id  { content }  -- chỉ tác giả được sửa tin nhắn của chính mình
+const updateMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+    if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
+
+    if (!message.author.equals(req.user._id))
+      return res.status(403).json({ success: false, message: 'Chỉ được sửa tin nhắn của chính mình' });
+
+    const content = req.body.content?.trim();
+    if (!content) return res.status(400).json({ success: false, message: 'Nội dung không được để trống' });
+
+    message.content = content;
+    message.isEdited = true;
+    await message.save();
+    await message.populate('author', 'username avatar');
+
+    req.app.get('io')?.to(message.channel.toString()).emit('message_edited', message);
+    res.json({ success: true, data: message });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // DELETE /api/messages/:id
 const deleteMessage = async (req, res) => {
   try {
     const message = await Message.findById(req.params.id);
     if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
-    if (!message.author.equals(req.user._id))
-      return res.status(403).json({ success: false, message: 'Cannot delete others messages' });
+
+    const isOwnMessage = message.author.equals(req.user._id);
+    if (!isOwnMessage) {
+      const channel = await Channel.findById(message.channel);
+      const server = channel ? await ServerModel.findById(channel.server) : null;
+      const actorRole = server ? getRole(server, req.user._id) : null;
+      const authorRole = server ? getRole(server, message.author) : null;
+
+      if (!actorRole || !canDeleteMessage(actorRole, authorRole))
+        return res.status(403).json({ success: false, message: 'Không có quyền xoá tin nhắn này' });
+    }
 
     await message.deleteOne();
+    req.app.get('io')?.to(message.channel.toString()).emit('message_deleted', {
+      messageId: message._id,
+      channelId: message.channel,
+    });
     res.json({ success: true, message: 'Message deleted' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-module.exports = { getMessages, sendMessage, deleteMessage };
+module.exports = { getMessages, sendMessage, updateMessage, deleteMessage };

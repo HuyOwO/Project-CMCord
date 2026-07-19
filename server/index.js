@@ -7,7 +7,8 @@ const initSocket = require('./src/socket/socketHandler');
 const PORT = process.env.PORT || 5000;
 
 const httpServer = createServer(app);
-initSocket(httpServer);
+const io = initSocket(httpServer);
+app.set('io', io);
 
 connectDB().then(() => {
   httpServer.listen(PORT, () => {
