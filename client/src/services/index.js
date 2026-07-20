@@ -13,6 +13,16 @@ export const authService = {
     const { data } = await api.get('/auth/me');
     return data.data;
   },
+  changePassword: async (oldPassword, newPassword) => {
+    const { data } = await api.put('/auth/password', { oldPassword, newPassword });
+    return data;
+  },
+};
+export const userService = {
+  updateProfile: async ({ username, avatar }) => {
+    const { data } = await api.patch('/users/me', { username, avatar });
+    return data.data;
+  },
 };
 
 export const serverService = {
@@ -84,10 +94,11 @@ export const messageService = {
     const { data } = await api.get(`/channels/${channelId}/messages?page=${page}`);
     return data.data;
   },
-  send: async (channelId, content, file = null) => {
+  send: async (channelId, content, file = null, replyTo = null) => {
     const form = new FormData();
     if (content) form.append('content', content);
     if (file) form.append('file', file);
+    if (replyTo) form.append('replyTo', replyTo);
     const { data } = await api.post(`/channels/${channelId}/messages`, form);
     return data.data;
   },
@@ -97,5 +108,13 @@ export const messageService = {
   },
   remove: async (messageId) => {
     await api.delete(`/channels/messages/${messageId}`);
+  },
+  togglePin: async (messageId) => {
+    const { data } = await api.patch(`/channels/messages/${messageId}/pin`);
+    return data.data;
+  },
+  toggleReaction: async (messageId, emoji) => {
+    const { data } = await api.post(`/channels/messages/${messageId}/react`, { emoji });
+    return data.data;
   },
 };

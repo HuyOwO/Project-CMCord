@@ -6,7 +6,7 @@ const authRoutes    = require('./routes/authRoutes');
 const serverRoutes  = require('./routes/serverRoutes');
 const channelRoutes = require('./routes/channelRoutes');
 const messageRoutes = require('./routes/messageRoutes');
-
+const userRoutes     = require('./routes/userRoutes');
 const app = express();
 
 // origin: true => phản chiếu origin của request, cho phép mọi máy trong LAN gọi API khi test.
@@ -20,6 +20,7 @@ app.use('/api/auth',     authRoutes);
 app.use('/api/servers',  serverRoutes);
 app.use('/api/servers',  channelRoutes);
 app.use('/api/channels', messageRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));

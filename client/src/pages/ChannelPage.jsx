@@ -35,8 +35,10 @@ export default function ChannelPage() {
   const [renamingChannel, setRenamingChannel] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editValue, setEditValue] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
   const [showServerSettings, setShowServerSettings] = useState(false);
   const [showNickname, setShowNickname] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState(null); // null = không đang gõ mention
   const bottomRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -64,6 +66,12 @@ export default function ChannelPage() {
     socket.on('message_edited', (updatedMsg) =>
       setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m))
     );
+    socket.on('message_pinned', (updatedMsg) =>
+      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m))
+    );
+    socket.on('message_reacted', (updatedMsg) =>
+      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m))
+    );
     socket.on('user_typing', ({ userId, username }) =>
       setTyping(prev => prev.some(t => t.userId === userId) ? prev : [...prev, { userId, username }])
     );
@@ -76,6 +84,8 @@ export default function ChannelPage() {
       socket.off('new_message');
       socket.off('message_deleted');
       socket.off('message_edited');
+      socket.off('message_pinned');
+      socket.off('message_reacted');
       socket.off('user_typing');
       socket.off('user_stop_typing');
     };
@@ -90,24 +100,33 @@ export default function ChannelPage() {
     e.preventDefault();
     if (!input.trim()) return;
     socket
-      ? socket.emit('send_message', { channelId, content: input.trim() })
-      : await messageService.send(channelId, input.trim());
+      ? socket.emit('send_message', { channelId, content: input.trim(), replyTo: replyingTo?._id })
+      : await messageService.send(channelId, input.trim(), null, replyingTo?._id);
     setInput('');
-    // Gửi xong thì báo dừng gõ ngay, không đợi timeout
+    setReplyingTo(null);
     clearTimeout(typingTimeoutRef.current);
     socket?.emit('stop_typing', { channelId });
   };
 
   const handleTyping = (e) => {
-    setInput(e.target.value);
+    const value = e.target.value;
+    setInput(value);
     socket?.emit('typing', { channelId });
 
-    // Tự động báo "dừng gõ" sau 3s không gõ gì thêm,
-    // thay vì chỉ dựa vào onBlur (trước đây nếu không rời khỏi ô nhập thì không bao giờ báo dừng)
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       socket?.emit('stop_typing', { channelId });
     }, 3000);
+
+    // Phát hiện đang gõ @xxx ở cuối chuỗi (chưa có dấu cách sau @)
+    const match = value.slice(0, e.target.selectionStart).match(/@(\w*)$/);
+    setMentionQuery(match ? match[1] : null);
+  };
+
+  const insertMention = (username) => {
+    const before = input.replace(/@(\w*)$/, '');
+    setInput(`${before}@${username} `);
+    setMentionQuery(null);
   };
 
   const formatTime = (date) =>
@@ -240,6 +259,16 @@ export default function ChannelPage() {
     setMessages(prev => prev.map(m => m._id === updated._id ? updated : m));
     setEditingMessageId(null);
     setEditValue('');
+  };
+
+  const handleTogglePin = async (messageId) => {
+    const updated = await messageService.togglePin(messageId);
+    setMessages(prev => prev.map(m => m._id === updated._id ? updated : m));
+  };
+
+  const handleReact = async (messageId, emoji = '👍') => {
+    const updated = await messageService.toggleReaction(messageId, emoji);
+    setMessages(prev => prev.map(m => m._id === updated._id ? updated : m));
   };
 
   return (
@@ -398,9 +427,45 @@ export default function ChannelPage() {
                         📎 Tải file đính kèm
                       </a>
                     )}
+                    {msg.reactions?.length > 0 && (
+                      <div className="flex gap-1 mt-1">
+                        {msg.reactions.map(r => (
+                          <button
+                            key={r.emoji}
+                            onClick={() => handleReact(msg._id, r.emoji)}
+                            className={`text-xs px-1.5 py-0.5 rounded-full border ${
+                              r.users.includes(user?._id) ? 'border-cm-accent bg-cm-accent/10' : 'border-cm-border'
+                            }`}
+                          >
+                            {r.emoji} {r.users.length}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {editingMessageId !== msg._id && (
                     <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 flex-shrink-0 self-start">
+                    <button
+                        onClick={() => setReplyingTo(msg)}
+                        title="Trả lời"
+                        className="text-cm-muted hover:text-white text-xs"
+                      >
+                        ↩️
+                      </button>
+                      <button
+                        onClick={() => handleReact(msg._id)}
+                        title="Thả cảm xúc"
+                        className="text-cm-muted hover:text-white text-xs"
+                      >
+                        😀
+                      </button>
+                      <button
+                        onClick={() => handleTogglePin(msg._id)}
+                        title={msg.isPinned ? 'Bỏ ghim' : 'Ghim tin nhắn'}
+                        className={`text-xs ${msg.isPinned ? 'text-cm-accent' : 'text-cm-muted hover:text-white'}`}
+                      >
+                        📌
+                      </button>
                       {msg.author._id === user?._id && (
                         <button
                           onClick={() => startEditMessage(msg)}
@@ -439,6 +504,34 @@ export default function ChannelPage() {
         </div>
 
         {/* Input */}
+        {replyingTo && (
+          <div className="mx-4 mb-1 px-3 py-1.5 bg-cm-input rounded flex items-center justify-between text-xs">
+            <span className="text-cm-muted">
+              Đang trả lời <span className="text-white">{getDisplayName(server, replyingTo.author._id, replyingTo.author.username)}</span>
+            </span>
+            <button onClick={() => setReplyingTo(null)} className="text-cm-muted hover:text-white">✕</button>
+          </div>
+        )}
+        {mentionQuery !== null && (
+  <div className="mx-4 mb-1 bg-cm-bg border border-cm-border rounded shadow-lg max-h-40 overflow-y-auto">
+    {server?.members
+      ?.filter(m => m.user?.username?.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+      .map(m => (
+        <button
+          key={m.user._id}
+          type="button"
+          onClick={() => insertMention(m.user.username)}
+          className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-cm-text hover:bg-cm-input text-left"
+        >
+          <div className="w-5 h-5 rounded-full bg-cm-accent flex items-center justify-center text-white text-[10px] font-bold">
+            {m.user.username?.[0]?.toUpperCase()}
+          </div>
+          {m.user.username}
+        </button>
+      ))}
+  </div>
+)}
+
         <form onSubmit={sendMessage} className="px-4 pb-4">
           <div className="bg-cm-input rounded-lg flex items-center px-4 gap-3">
             <input
