@@ -25,6 +25,7 @@ const initSocket = (httpServer) => {
 
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.user.username} (${socket.id})`);
+    io.emit('user_online', { userId: socket.user._id });
 
     // Vào channel
     socket.on('join_channel', ({ channelId }) => {
@@ -37,13 +38,14 @@ const initSocket = (httpServer) => {
     });
 
     // Gửi tin nhắn real-time
-    socket.on('send_message', async ({ channelId, content }) => {
+    socket.on('send_message', async ({ channelId, content, replyTo }) => {
       try {
         if (!content?.trim()) return;
         const message = await Message.create({
           content: content.trim(),
           author: socket.user._id,
           channel: channelId,
+          replyTo: replyTo || null,
         });
         await message.populate('author', 'username avatar');
         io.to(channelId).emit('new_message', message);
@@ -66,6 +68,7 @@ const initSocket = (httpServer) => {
 
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.user.username}`);
+      io.emit('user_offline', { userId: socket.user._id });
     });
   });
 

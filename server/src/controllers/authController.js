@@ -40,5 +40,19 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
   res.json({ success: true, data: req.user });
 };
+// PATCH /api/auth/password
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id).select('+password');
+    if (!(await user.comparePassword(oldPassword)))
+      return res.status(400).json({ success: false, message: 'Mật khẩu cũ không đúng' });
 
-module.exports = { register, login, getMe };
+    user.password = newPassword; // pre('save') hook trong User.js sẽ tự hash
+    await user.save();
+    res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+module.exports = { register, login, getMe, changePassword };

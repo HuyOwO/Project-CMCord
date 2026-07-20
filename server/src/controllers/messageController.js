@@ -35,7 +35,7 @@ const sendMessage = async (req, res) => {
     const isMember = server?.members.some(m => m.user.equals(req.user._id));
     if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
 
-    const { content } = req.body;
+    const { content, replyTo } = req.body;
     const fileUrl  = req.file ? `/uploads/${req.file.filename}` : null;
     const fileType = req.file ? req.file.mimetype : null;
 
@@ -47,6 +47,7 @@ const sendMessage = async (req, res) => {
       author: req.user._id,
       channel: req.params.channelId,
       fileUrl, fileType,
+      replyTo: replyTo || null,
     });
 
     await message.populate('author', 'username avatar');
@@ -107,5 +108,46 @@ const deleteMessage = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+// PATCH /api/messages/:id/pin
+const togglePin = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+    if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
+    message.isPinned = !message.isPinned;
+    await message.save();
+    await message.populate('author', 'username avatar');
+    req.app.get('io')?.to(message.channel.toString()).emit('message_pinned', message);
+    res.json({ success: true, data: message });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
-module.exports = { getMessages, sendMessage, updateMessage, deleteMessage };
+// POST /api/messages/:id/react  { emoji }
+const toggleReaction = async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    const message = await Message.findById(req.params.id);
+    if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
+
+    let group = message.reactions.find(r => r.emoji === emoji);
+    if (!group) {
+      group = { emoji, users: [req.user._id] };
+      message.reactions.push(group);
+    } else if (group.users.some(u => u.equals(req.user._id))) {
+      group.users = group.users.filter(u => !u.equals(req.user._id));
+    } else {
+      group.users.push(req.user._id);
+    }
+    message.reactions = message.reactions.filter(r => r.users.length > 0);
+
+    await message.save();
+    await message.populate('author', 'username avatar');
+    req.app.get('io')?.to(message.channel.toString()).emit('message_reacted', message);
+    res.json({ success: true, data: message });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getMessages, sendMessage, updateMessage, deleteMessage, togglePin, toggleReaction };
