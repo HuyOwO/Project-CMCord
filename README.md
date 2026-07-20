@@ -20,7 +20,7 @@
 
 ### Bước 1 – Clone repo
 ```bash
-git clone https://github.com/<your-org>/BFH-Project-CMCord.git
+git clone https://github.com/<your-org>/Project-CMCord.git
 cd BFH-Project-CMCord
 ```
 
