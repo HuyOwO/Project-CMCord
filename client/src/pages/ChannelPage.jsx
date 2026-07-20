@@ -426,12 +426,16 @@ export default function ChannelPage() {
             );
           })}
 
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Typing indicator - cố định ngay trên ô input, không cuộn theo tin nhắn */}
+        <div className="h-5 px-4">
           {typing.length > 0 && (
-            <p className="text-cm-muted text-xs italic px-2">
+            <p className="text-cm-muted text-xs italic">
               {typing.map(t => getDisplayName(server, t.userId, t.username)).join(', ')} đang gõ...
             </p>
           )}
-          <div ref={bottomRef} />
         </div>
 
         {/* Input */}
