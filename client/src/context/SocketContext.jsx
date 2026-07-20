@@ -18,7 +18,10 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const newSocket = io('http://localhost:5000', { auth: { token } });
+    // Dùng hostname của trình duyệt hiện tại thay vì hardcode 'localhost',
+    // để socket kết nối đúng về máy đang chạy backend khi truy cập từ máy khác trong LAN.
+    const SOCKET_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+    const newSocket = io(SOCKET_URL, { auth: { token } });
 
     newSocket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message);

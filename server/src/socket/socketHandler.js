@@ -5,7 +5,9 @@ const Message = require('../models/Message');
 
 const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
-    cors: { origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true },
+    // origin: true => phản chiếu origin của request, cho phép mọi máy trong LAN kết nối socket khi test.
+    // Khi deploy thật, nên đổi lại thành danh sách domain cụ thể cho an toàn.
+    cors: { origin: true, credentials: true },
   });
 
   // Xác thực JWT trước khi kết nối socket
