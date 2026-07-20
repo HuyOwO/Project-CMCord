@@ -1,6 +1,9 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
-const api = axios.create({ baseURL: '/api' });
+// Nếu API_BASE_URL rỗng (dev 1 máy) -> '/api' đi qua Vite proxy như cũ.
+// Nếu có set VITE_API_URL -> gọi thẳng tới backend đó (vd backend chạy ở máy khác).
+const api = axios.create({ baseURL: `${API_BASE_URL}/api` });
 
 // Tự động đính kèm JWT token vào mọi request
 api.interceptors.request.use((config) => {

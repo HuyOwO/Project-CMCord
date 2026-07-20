@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import useAuth from '../hooks/useAuth';
+import { API_BASE_URL } from '../config';
 
 export const SocketContext = createContext(null);
 
@@ -18,9 +19,10 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Dùng hostname của trình duyệt hiện tại thay vì hardcode 'localhost',
-    // để socket kết nối đúng về máy đang chạy backend khi truy cập từ máy khác trong LAN.
-    const SOCKET_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+    // Ưu tiên VITE_API_URL nếu có set (trỏ đích danh về 1 backend cụ thể,
+    // dùng khi frontend và backend không chạy chung 1 máy). Nếu không, suy ra
+    // từ hostname hiện tại thay vì hardcode 'localhost'.
+    const SOCKET_URL = API_BASE_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
     const newSocket = io(SOCKET_URL, { auth: { token } });
 
     newSocket.on('connect_error', (err) => {

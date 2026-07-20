@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, channelService, serverService } from '../services';
+import { resolveFileUrl } from '../config';
 import useAuth   from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
 import useServerSelect from '../hooks/useServerSelect';
@@ -392,7 +393,7 @@ export default function ChannelPage() {
                     )}
 
                     {msg.fileUrl && (
-                      <a href={msg.fileUrl} target="_blank" rel="noreferrer"
+                      <a href={resolveFileUrl(msg.fileUrl)} target="_blank" rel="noreferrer"
                         className="text-cm-accent text-xs hover:underline mt-1 block">
                         📎 Tải file đính kèm
                       </a>
