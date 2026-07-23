@@ -11,7 +11,7 @@
 - **Channel:** tạo, đổi tên, xoá text channel
 - **Nhắn tin real-time** qua Socket.io: gửi/nhận tức thì, typing indicator, gộp nhóm tin nhắn theo người gửi (kiểu Discord), phân chia theo ngày
 - **Sửa / xoá tin nhắn** (tác giả sửa được tin của mình; Owner/Moderator có thể xoá tin của người khác theo quyền)
-- **Đính kèm file** khi gửi tin nhắn (ảnh, PDF, DOC/DOCX, XLSX, ZIP — tối đa 25MB)
+- **Đính kèm file** khi gửi tin nhắn (ảnh, PDF, DOC/DOCX, XLSX, ZIP)
 
 ## Tech Stack
 
