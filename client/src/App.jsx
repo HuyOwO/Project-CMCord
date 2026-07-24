@@ -5,6 +5,7 @@ import LoginPage    from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage     from './pages/HomePage';
 import ChannelPage  from './pages/ChannelPage';
+import DMPage       from './pages/DMPage';
 import useAuth      from './hooks/useAuth';
 
 // Chặn route khi chưa đăng nhập
@@ -20,6 +21,8 @@ const AppRoutes = () => (
     <Route path="/register" element={<RegisterPage />} />
     <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
     <Route path="/channels/:serverId/:channelId" element={<PrivateRoute><ChannelPage /></PrivateRoute>} />
+    <Route path="/dm" element={<PrivateRoute><DMPage /></PrivateRoute>} />
+    <Route path="/dm/:conversationId" element={<PrivateRoute><DMPage /></PrivateRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );

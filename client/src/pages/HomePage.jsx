@@ -119,6 +119,7 @@ export default function HomePage() {
         onSelectServer={handleSelectServer}
         onCreateClick={() => setShowCreate(true)}
         onJoinClick={() => setShowJoin(true)}
+        onHomeClick={() => navigate('/dm')}
       />
 
       <ChannelSidebar

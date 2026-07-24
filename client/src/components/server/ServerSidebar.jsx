@@ -3,9 +3,24 @@
 // - Bản trong HomePage hiển thị ĐẦY ĐỦ danh sách server.
 // - Bản trong ChannelPage chỉ hiển thị 1 icon của server đang mở (bug: không đổi server được).
 // Component này gộp lại thành một bản DUY NHẤT, đầy đủ, dùng chung cho cả hai trang.
-export default function ServerSidebar({ servers, activeServerId, onSelectServer, onCreateClick, onJoinClick }) {
+export default function ServerSidebar({ servers, activeServerId, onSelectServer, onCreateClick, onJoinClick, onHomeClick, activeHome = false }) {
   return (
     <div className="w-[72px] bg-cm-bg flex flex-col items-center py-3 gap-2 border-r border-cm-border">
+      {onHomeClick && (
+        <>
+          <button
+            onClick={onHomeClick}
+            title="Tin nhắn trực tiếp"
+            className={`w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all hover:rounded-xl ${
+              activeHome ? 'bg-cm-accent text-white rounded-xl' : 'bg-cm-sidebar text-cm-accent hover:bg-cm-accent hover:text-white'
+            }`}
+          >
+            💬
+          </button>
+          <div className="w-8 h-px bg-cm-border" />
+        </>
+      )}
+
       {servers.map((srv) => (
         <button
           key={srv._id}

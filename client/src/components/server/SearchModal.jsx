@@ -29,7 +29,7 @@ function Highlight({ text, query }) {
 
 // Modal tìm kiếm toàn server: tin nhắn, file đính kèm, thành viên.
 // Mở bằng nút 🔍 trên header hoặc phím tắt Ctrl/Cmd+K.
-export default function SearchModal({ isOpen, onClose, server, onJumpToChannel }) {
+export default function SearchModal({ isOpen, onClose, server, onJumpToChannel, onMessageUser, currentUserId }) {
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState('all');
   const [results, setResults] = useState({ messages: [], files: [], members: [] });
@@ -217,6 +217,15 @@ export default function SearchModal({ isOpen, onClose, server, onJumpToChannel }
                     <div className="text-cm-muted text-xs truncate">@{m.user?.username}</div>
                   </div>
                   <span className="text-cm-muted text-xs flex-shrink-0">{ROLE_LABEL[m.role]}</span>
+                  {onMessageUser && m.user?._id !== currentUserId && (
+                    <button
+                      onClick={() => { onMessageUser(m.user._id); onClose(); }}
+                      title="Nhắn tin"
+                      className="text-cm-muted hover:text-cm-accent text-xs flex-shrink-0"
+                    >
+                      💬
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

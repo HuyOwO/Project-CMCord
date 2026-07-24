@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { messageService, channelService, serverService } from '../services';
+import { messageService, channelService, serverService, dmService } from '../services';
 import { resolveFileUrl } from '../config';
 import useAuth   from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
@@ -224,6 +224,11 @@ export default function ChannelPage() {
     serverService.getOne(serverId).then(setServer);
   };
 
+  const handleMessageMember = async (userId) => {
+    const convo = await dmService.getOrCreate(userId);
+    navigate(`/dm/${convo._id}`);
+  };
+
   const handleDeleteMessage = async (messageId) => {
     if (!window.confirm('Xoá tin nhắn này?')) return;
     await messageService.remove(messageId);
@@ -293,6 +298,7 @@ export default function ChannelPage() {
         onSelectServer={goToServer}
         onCreateClick={() => navigate('/')}
         onJoinClick={() => setShowJoin(true)}
+        onHomeClick={() => navigate('/dm')}
       />
 
       <ChannelSidebar
@@ -359,6 +365,8 @@ export default function ChannelPage() {
         onClose={() => setShowSearch(false)}
         server={server}
         onJumpToChannel={(chId) => navigate(`/channels/${serverId}/${chId}`)}
+        onMessageUser={handleMessageMember}
+        currentUserId={user?._id}
       />
 
       {/* Main chat area */}
@@ -586,6 +594,7 @@ export default function ChannelPage() {
           onDemote={handleDemote}
           onKick={handleKick}
           onBan={handleBan}
+          onMessage={handleMessageMember}
         />
       )}
     </div>

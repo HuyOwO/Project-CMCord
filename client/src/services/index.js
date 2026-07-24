@@ -71,6 +71,43 @@ export const serverService = {
   },
 };
 
+export const dmService = {
+  getContacts: async () => {
+    const { data } = await api.get('/dm/contacts');
+    return data.data;
+  },
+  getConversations: async () => {
+    const { data } = await api.get('/dm');
+    return data.data;
+  },
+  getOrCreate: async (userId) => {
+    const { data } = await api.post('/dm', { userId });
+    return data.data;
+  },
+  getMessages: async (conversationId, page = 1) => {
+    const { data } = await api.get(`/dm/${conversationId}/messages?page=${page}`);
+    return data.data;
+  },
+  send: async (conversationId, content, file = null) => {
+    const form = new FormData();
+    if (content) form.append('content', content);
+    if (file) form.append('file', file);
+    const { data } = await api.post(`/dm/${conversationId}/messages`, form);
+    return data.data;
+  },
+  update: async (messageId, content) => {
+    const { data } = await api.patch(`/dm/messages/${messageId}`, { content });
+    return data.data;
+  },
+  remove: async (messageId) => {
+    await api.delete(`/dm/messages/${messageId}`);
+  },
+  toggleReaction: async (messageId, emoji) => {
+    const { data } = await api.post(`/dm/messages/${messageId}/react`, { emoji });
+    return data.data;
+  },
+};
+
 export const searchService = {
   search: async (serverId, q, scope = 'all') => {
     const { data } = await api.get(`/servers/${serverId}/search`, { params: { q, scope } });

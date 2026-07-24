@@ -5,7 +5,7 @@ const ROLE_LABEL = { owner: 'Chủ sở hữu', moderator: 'Moderator', member: 
 // Panel danh sách thành viên (giống Discord), gom nhóm theo role.
 // Các nút thăng/hạ/kick/ban chỉ hiện khi actor (currentUserId) có đủ quyền với từng người,
 // dựa theo utils/permissions.js — không tự ý hiện nút rồi mới báo lỗi.
-export default function MemberListPanel({ server, currentUserId, onPromote, onDemote, onKick, onBan }) {
+export default function MemberListPanel({ server, currentUserId, onPromote, onDemote, onKick, onBan, onMessage }) {
   if (!server) return null;
 
   const actorRole = getRole(server, currentUserId);
@@ -59,8 +59,17 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                     </div>
                   </div>
 
-                  {(canPromote || canDemote || canModerate) && (
+                  {(canPromote || canDemote || canModerate || (!isSelf && onMessage)) && (
                     <div className="hidden group-hover:flex items-center gap-1.5 flex-shrink-0">
+                      {!isSelf && onMessage && (
+                        <button
+                          onClick={() => onMessage(m.uid)}
+                          title="Nhắn tin"
+                          className="text-cm-muted hover:text-cm-accent text-xs"
+                        >
+                          💬
+                        </button>
+                      )}
                       {canPromote && (
                         <button
                           onClick={() => onPromote(m.uid)}
