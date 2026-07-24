@@ -6,6 +6,7 @@ const messageSchema = new mongoose.Schema({
   channel:  { type: mongoose.Schema.Types.ObjectId, ref: 'Channel', required: true },
   fileUrl:  { type: String, default: null },
   fileType: { type: String, default: null },
+  fileName: { type: String, default: null }, // tên gốc của file, dùng để tìm kiếm theo tên
   isEdited: { type: Boolean, default: false },
   isPinned: { type: Boolean, default: false },
   replyTo:  { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },

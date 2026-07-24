@@ -38,6 +38,7 @@ const sendMessage = async (req, res) => {
     const { content, replyTo } = req.body;
     const fileUrl  = req.file ? `/uploads/${req.file.filename}` : null;
     const fileType = req.file ? req.file.mimetype : null;
+    const fileName = req.file ? req.file.originalname : null;
 
     if (!content && !fileUrl)
       return res.status(400).json({ success: false, message: 'Message cannot be empty' });
@@ -46,7 +47,7 @@ const sendMessage = async (req, res) => {
       content: content || '',
       author: req.user._id,
       channel: req.params.channelId,
-      fileUrl, fileType,
+      fileUrl, fileType, fileName,
       replyTo: replyTo || null,
     });
 

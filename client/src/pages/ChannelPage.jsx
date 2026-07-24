@@ -11,6 +11,7 @@ import CreateChannelModal from '../components/channel/CreateChannelModal';
 import InviteModal from '../components/server/InviteModal';
 import JoinServerModal from '../components/server/JoinServerModal';
 import MemberListPanel from '../components/server/MemberListPanel';
+import SearchModal from '../components/server/SearchModal';
 import ServerSettingsModal from '../components/server/ServerSettingsModal';
 import NicknameModal from '../components/server/NicknameModal';
 import { getRole, canDeleteMessage, getDisplayName } from '../utils/permissions';
@@ -32,6 +33,7 @@ export default function ChannelPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [renamingChannel, setRenamingChannel] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -95,6 +97,18 @@ export default function ChannelPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Phím tắt Ctrl/Cmd+K để mở tìm kiếm (giống Discord/Slack)
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -340,6 +354,13 @@ export default function ChannelPage() {
         onJoin={handleJoinServer}
       />
 
+      <SearchModal
+        isOpen={showSearch}
+        onClose={() => setShowSearch(false)}
+        server={server}
+        onJumpToChannel={(chId) => navigate(`/channels/${serverId}/${chId}`)}
+      />
+
       {/* Main chat area */}
       <div className="flex-1 flex flex-col bg-cm-surface">
         {/* Header */}
@@ -348,13 +369,22 @@ export default function ChannelPage() {
             <span className="text-cm-muted text-lg">#</span>
             <span className="text-white font-semibold">{currentChannel?.name}</span>
           </div>
-          <button
-            onClick={() => setShowMembers(v => !v)}
-            title="Danh sách thành viên"
-            className={`text-sm px-2 py-1 rounded ${showMembers ? 'text-white bg-cm-input' : 'text-cm-muted hover:text-white'}`}
-          >
-            👥 {server?.members?.length ?? ''}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowSearch(true)}
+              title="Tìm kiếm (Ctrl+K)"
+              className="text-sm px-2 py-1 rounded text-cm-muted hover:text-white"
+            >
+              🔍
+            </button>
+            <button
+              onClick={() => setShowMembers(v => !v)}
+              title="Danh sách thành viên"
+              className={`text-sm px-2 py-1 rounded ${showMembers ? 'text-white bg-cm-input' : 'text-cm-muted hover:text-white'}`}
+            >
+              👥 {server?.members?.length ?? ''}
+            </button>
+          </div>
         </div>
 
         {/* Messages */}

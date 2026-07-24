@@ -71,6 +71,13 @@ export const serverService = {
   },
 };
 
+export const searchService = {
+  search: async (serverId, q, scope = 'all') => {
+    const { data } = await api.get(`/servers/${serverId}/search`, { params: { q, scope } });
+    return data.data;
+  },
+};
+
 export const channelService = {
   getAll: async (serverId) => {
     const { data } = await api.get(`/servers/${serverId}/channels`);
