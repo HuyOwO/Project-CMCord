@@ -1,4 +1,5 @@
 const Message = require('../models/Message');
+const { getUploadedFileUrl } = require('../utils/fileUrl');
 const Channel = require('../models/Channel');
 const ServerModel = require('../models/Server');
 const { getRole, canDeleteMessage } = require('../utils/permissions');
@@ -36,7 +37,7 @@ const sendMessage = async (req, res) => {
     if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
 
     const { content, replyTo } = req.body;
-    const fileUrl  = req.file ? `/uploads/${req.file.filename}` : null;
+    const fileUrl  = getUploadedFileUrl(req.file);
     const fileType = req.file ? req.file.mimetype : null;
     const fileName = req.file ? req.file.originalname : null;
 

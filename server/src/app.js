@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
 
 const authRoutes    = require('./routes/authRoutes');
 const serverRoutes  = require('./routes/serverRoutes');
@@ -32,6 +33,15 @@ app.use((req, res) => res.status(404).json({ success: false, message: 'Route not
 
 // Global error handler
 app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    const message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'File vượt quá dung lượng cho phép (tối đa 8MB)'
+      : err.message;
+    return res.status(400).json({ success: false, message });
+  }
+  if (err?.message === 'File type not allowed') {
+    return res.status(400).json({ success: false, message: 'Định dạng file không được hỗ trợ' });
+  }
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Internal server error' });
 });

@@ -2,6 +2,7 @@ const Conversation = require('../models/Conversation');
 const DirectMessage = require('../models/DirectMessage');
 const ServerModel = require('../models/Server');
 const User = require('../models/User');
+const { getUploadedFileUrl } = require('../utils/fileUrl');
 
 // Kiểm tra 2 user có chung ít nhất 1 server không. Dự án CHƯA có hệ thống bạn bè
 // nên tạm chặn DM theo điều kiện này để tránh nhắn tin làm phiền người lạ
@@ -115,7 +116,7 @@ const sendMessage = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not a participant' });
 
     const { content } = req.body;
-    const fileUrl  = req.file ? `/uploads/${req.file.filename}` : null;
+    const fileUrl  = getUploadedFileUrl(req.file);
     const fileType = req.file ? req.file.mimetype : null;
     const fileName = req.file ? req.file.originalname : null;
 
