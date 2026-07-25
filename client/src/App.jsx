@@ -23,6 +23,7 @@ const AppRoutes = () => (
     <Route path="/channels/:serverId/:channelId" element={<PrivateRoute><ChannelPage /></PrivateRoute>} />
     <Route path="/dm" element={<PrivateRoute><DMPage /></PrivateRoute>} />
     <Route path="/dm/:conversationId" element={<PrivateRoute><DMPage /></PrivateRoute>} />
+    <Route path="/friends" element={<PrivateRoute><DMPage /></PrivateRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );

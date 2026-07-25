@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { serverService, dmService } from '../services';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { serverService, dmService, friendService } from '../services';
 import { resolveFileUrl } from '../config';
 import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth from '../hooks/useAuth';
@@ -9,6 +9,7 @@ import useServerSelect from '../hooks/useServerSelect';
 import ServerSidebar from '../components/server/ServerSidebar';
 import DMSidebar from '../components/dm/DMSidebar';
 import NewDMModal from '../components/dm/NewDMModal';
+import FriendsPanel from '../components/dm/FriendsPanel';
 
 const GROUP_GAP_MS = 5 * 60 * 1000;
 
@@ -29,11 +30,14 @@ const formatTime = (date) =>
 
 export default function DMPage() {
   const { conversationId } = useParams();
+  const location            = useLocation();
   const { user, logout }   = useAuth();
   const socket             = useSocket();
   const onlineUsers        = useOnlineUsers();
   const navigate           = useNavigate();
   const goToServer         = useServerSelect();
+
+  const isFriendsView = location.pathname === '/friends';
 
   const [servers, setServers]           = useState([]);
   const [conversations, setConversations] = useState([]);
@@ -46,6 +50,9 @@ export default function DMPage() {
   const [showNewDM, setShowNewDM]       = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editValue, setEditValue]       = useState('');
+  const [friends, setFriends]           = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [outgoingRequests, setOutgoingRequests] = useState([]);
   const bottomRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -61,6 +68,33 @@ export default function DMPage() {
   useEffect(() => {
     dmService.getConversations().then(setConversations);
   }, []);
+
+  // Bạn bè + lời mời kết bạn -- cần load ở đây (không chỉ khi vào /friends) vì
+  // DMSidebar luôn hiển thị số lời mời đang chờ dù đang xem trang nào trong /dm.
+  const loadFriends = () => {
+    friendService.getAll().then(({ friends, incomingRequests, outgoingRequests }) => {
+      setFriends(friends);
+      setIncomingRequests(incomingRequests);
+      setOutgoingRequests(outgoingRequests);
+    });
+  };
+  useEffect(loadFriends, []);
+
+  // Lắng nghe thông báo kết bạn real-time (tới từ phòng riêng `user:<id>`, xem socketHandler.js)
+  useEffect(() => {
+    if (!socket) return;
+    const handleReceived = () => loadFriends();
+    const handleAccepted = () => loadFriends();
+    const handleRemoved = () => loadFriends();
+    socket.on('friend_request_received', handleReceived);
+    socket.on('friend_request_accepted', handleAccepted);
+    socket.on('friend_removed', handleRemoved);
+    return () => {
+      socket.off('friend_request_received', handleReceived);
+      socket.off('friend_request_accepted', handleAccepted);
+      socket.off('friend_removed', handleRemoved);
+    };
+  }, [socket]);
 
   // Tin nhắn của hội thoại đang mở
   useEffect(() => {
@@ -132,6 +166,19 @@ export default function DMPage() {
     setConversations(list);
     setShowNewDM(false);
     navigate(`/dm/${convo._id}`);
+  };
+
+  const handleAcceptFriend = async (requestId) => {
+    await friendService.accept(requestId);
+    loadFriends();
+  };
+  const handleRemoveFriend = async (friendshipId) => {
+    await friendService.remove(friendshipId);
+    loadFriends();
+  };
+  const handleSendFriendRequest = async (username) => {
+    await friendService.sendRequest(username);
+    loadFriends();
   };
 
   const handleFileSelect = (e) => {
@@ -225,6 +272,9 @@ export default function DMPage() {
         onlineUsers={onlineUsers}
         user={user}
         onLogout={logout}
+        onFriendsClick={() => navigate('/friends')}
+        isFriendsActive={isFriendsView}
+        pendingRequestCount={incomingRequests.length}
       />
 
       <NewDMModal
@@ -234,7 +284,18 @@ export default function DMPage() {
       />
 
       <div className="flex-1 flex flex-col bg-cm-surface">
-        {!conversation ? (
+        {isFriendsView ? (
+          <FriendsPanel
+            friends={friends}
+            incomingRequests={incomingRequests}
+            outgoingRequests={outgoingRequests}
+            onAccept={handleAcceptFriend}
+            onRemove={handleRemoveFriend}
+            onSendRequest={handleSendFriendRequest}
+            onMessageUser={handleStartConversation}
+            onlineUsers={onlineUsers}
+          />
+        ) : !conversation ? (
           <div className="flex-1 flex items-center justify-center text-cm-muted">
             Chọn một cuộc trò chuyện để bắt đầu, hoặc bấm + để nhắn tin mới
           </div>

@@ -2,7 +2,9 @@ const Conversation = require('../models/Conversation');
 const DirectMessage = require('../models/DirectMessage');
 const ServerModel = require('../models/Server');
 const User = require('../models/User');
+const Friendship = require('../models/Friendship');
 const { getUploadedFileUrl } = require('../utils/fileUrl');
+const { areFriends } = require('./friendController');
 
 // Kiểm tra 2 user có chung ít nhất 1 server không. Dự án CHƯA có hệ thống bạn bè
 // nên tạm chặn DM theo điều kiện này để tránh nhắn tin làm phiền người lạ
@@ -14,7 +16,7 @@ const shareServer = async (userIdA, userIdB) => {
   return count > 0;
 };
 
-// GET /api/dm/contacts -- những người có thể bắt đầu nhắn tin (chung ít nhất 1 server)
+// GET /api/dm/contacts -- những người có thể bắt đầu nhắn tin (bạn bè, hoặc chung ít nhất 1 server)
 const getContacts = async (req, res) => {
   try {
     const servers = await ServerModel.find({ 'members.user': req.user._id })
@@ -28,6 +30,18 @@ const getContacts = async (req, res) => {
           seen.set(u._id.toString(), { _id: u._id, username: u.username, avatar: u.avatar });
         }
       });
+    });
+
+    const friendships = await Friendship.find({
+      status: 'accepted',
+      $or: [{ requester: req.user._id }, { recipient: req.user._id }],
+    }).populate('requester recipient', 'username avatar');
+
+    friendships.forEach((f) => {
+      const other = f.requester._id.equals(req.user._id) ? f.recipient : f.requester;
+      if (!seen.has(other._id.toString())) {
+        seen.set(other._id.toString(), { _id: other._id, username: other.username, avatar: other.avatar });
+      }
     });
 
     res.json({ success: true, data: Array.from(seen.values()) });
@@ -67,9 +81,9 @@ const getOrCreateConversation = async (req, res) => {
     const targetUser = await User.findById(userId).select('username avatar');
     if (!targetUser) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
 
-    const canDM = await shareServer(req.user._id, userId);
+    const canDM = (await shareServer(req.user._id, userId)) || (await areFriends(req.user._id, userId));
     if (!canDM)
-      return res.status(403).json({ success: false, message: 'Bạn cần chung ít nhất 1 server với người này để nhắn tin' });
+      return res.status(403).json({ success: false, message: 'Bạn cần là bạn bè hoặc chung ít nhất 1 server với người này để nhắn tin' });
 
     let conversation = await Conversation.findOne({
       participants: { $all: [req.user._id, userId], $size: 2 },

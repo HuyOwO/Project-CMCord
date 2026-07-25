@@ -71,6 +71,24 @@ export const serverService = {
   },
 };
 
+export const friendService = {
+  getAll: async () => {
+    const { data } = await api.get('/friends');
+    return data.data;
+  },
+  sendRequest: async (username) => {
+    const { data } = await api.post('/friends/requests', { username });
+    return data.data;
+  },
+  accept: async (requestId) => {
+    const { data } = await api.post(`/friends/requests/${requestId}/accept`);
+    return data.data;
+  },
+  remove: async (id) => {
+    await api.delete(`/friends/${id}`);
+  },
+};
+
 export const dmService = {
   getContacts: async () => {
     const { data } = await api.get('/dm/contacts');

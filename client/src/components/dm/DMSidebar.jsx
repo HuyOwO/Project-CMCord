@@ -20,6 +20,9 @@ export default function DMSidebar({
   onlineUsers,
   user,
   onLogout,
+  onFriendsClick,
+  isFriendsActive = false,
+  pendingRequestCount = 0,
 }) {
   return (
     <div className="w-60 bg-cm-sidebar flex flex-col">
@@ -31,6 +34,23 @@ export default function DMSidebar({
           className="text-cm-muted hover:text-white text-lg leading-none"
         >
           +
+        </button>
+      </div>
+
+      <div className="p-2 border-b border-cm-border">
+        <button
+          onClick={onFriendsClick}
+          className={`w-full flex items-center gap-2.5 px-2 py-2 rounded text-left ${
+            isFriendsActive ? 'bg-cm-input text-white' : 'text-cm-muted hover:bg-cm-input hover:text-cm-text'
+          }`}
+        >
+          <span className="text-lg">👥</span>
+          <span className="text-sm flex-1">Bạn bè</span>
+          {pendingRequestCount > 0 && (
+            <span className="inline-flex items-center justify-center bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex-shrink-0">
+              {pendingRequestCount}
+            </span>
+          )}
         </button>
       </div>
 
