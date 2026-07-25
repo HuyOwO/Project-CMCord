@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, channelService, serverService, dmService } from '../services';
 import { resolveFileUrl } from '../config';
+import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth   from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
 import useServerSelect from '../hooks/useServerSelect';
@@ -28,6 +29,9 @@ export default function ChannelPage() {
   const [servers,   setServers]   = useState([]);
   const [server,    setServer]    = useState(null);
   const [input,     setInput]     = useState('');
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [fileError, setFileError] = useState('');
+  const fileInputRef = useRef(null);
   const [typing,    setTyping]    = useState([]);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -110,13 +114,41 @@ export default function ChannelPage() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    e.target.value = ''; // cho phép chọn lại đúng file đó lần sau nếu người dùng bỏ rồi chọn lại
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError(`File "${file.name}" vượt quá 8MB, vui lòng chọn file nhỏ hơn.`);
+      return;
+    }
+    setFileError('');
+    setAttachedFile(file);
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    socket
-      ? socket.emit('send_message', { channelId, content: input.trim(), replyTo: replyingTo?._id })
-      : await messageService.send(channelId, input.trim(), null, replyingTo?._id);
+    if (!input.trim() && !attachedFile) return;
+
+    if (attachedFile) {
+      // Có file đính kèm -> bắt buộc gửi qua REST (multipart/form-data),
+      // Socket.io không xử lý được upload file. Server sẽ tự phát 'new_message'
+      // qua socket cho cả channel (kể cả người gửi) sau khi lưu xong.
+      try {
+        await messageService.send(channelId, input.trim(), attachedFile, replyingTo?._id);
+      } catch (err) {
+        setFileError(err?.response?.data?.message || 'Gửi file thất bại, vui lòng thử lại.');
+        return;
+      }
+    } else {
+      socket
+        ? socket.emit('send_message', { channelId, content: input.trim(), replyTo: replyingTo?._id })
+        : await messageService.send(channelId, input.trim(), null, replyingTo?._id);
+    }
+
     setInput('');
+    setAttachedFile(null);
+    setFileError('');
     setReplyingTo(null);
     clearTimeout(typingTimeoutRef.current);
     socket?.emit('stop_typing', { channelId });
@@ -570,16 +602,40 @@ export default function ChannelPage() {
   </div>
 )}
 
+        {attachedFile && (
+          <div className="mx-4 mb-1 px-3 py-1.5 bg-cm-input rounded flex items-center gap-2 text-xs">
+            <span>📎</span>
+            <span className="text-cm-text truncate flex-1">{attachedFile.name}</span>
+            <span className="text-cm-muted flex-shrink-0">{formatFileSize(attachedFile.size)}</span>
+            <button type="button" onClick={() => setAttachedFile(null)} className="text-cm-muted hover:text-white flex-shrink-0">✕</button>
+          </div>
+        )}
+        {fileError && <p className="mx-4 mb-1 text-red-400 text-xs">{fileError}</p>}
+
         <form onSubmit={sendMessage} className="px-4 pb-4">
-          <div className="bg-cm-input rounded-lg flex items-center px-4 gap-3">
+          <div className="bg-cm-input rounded-lg flex items-center px-2 gap-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Đính kèm file (tối đa 8MB)"
+              className="text-cm-muted hover:text-white text-lg px-2 py-3 flex-shrink-0"
+            >
+              📎
+            </button>
             <input
               value={input}
               onChange={handleTyping}
               onBlur={() => socket?.emit('stop_typing', { channelId })}
               placeholder={`Nhắn tin #${currentChannel?.name || '...'}`}
-              className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted"
+              className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted min-w-0"
             />
-            <button type="submit" className="text-cm-muted hover:text-white transition-colors">
+            <button type="submit" className="text-cm-muted hover:text-white transition-colors px-2 flex-shrink-0">
               ➤
             </button>
           </div>

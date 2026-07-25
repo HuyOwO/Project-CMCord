@@ -53,6 +53,7 @@ const sendMessage = async (req, res) => {
     });
 
     await message.populate('author', 'username avatar');
+    req.app.get('io')?.to(req.params.channelId).emit('new_message', message);
     res.status(201).json({ success: true, data: message });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

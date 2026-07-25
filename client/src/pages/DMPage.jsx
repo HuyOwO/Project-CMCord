@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { serverService, dmService } from '../services';
 import { resolveFileUrl } from '../config';
+import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth from '../hooks/useAuth';
 import useSocket, { useOnlineUsers } from '../hooks/useSocket';
 import useServerSelect from '../hooks/useServerSelect';
@@ -38,6 +39,9 @@ export default function DMPage() {
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages]         = useState([]);
   const [input, setInput]               = useState('');
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [fileError, setFileError]       = useState('');
+  const fileInputRef = useRef(null);
   const [typing, setTyping]             = useState([]);
   const [showNewDM, setShowNewDM]       = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
@@ -130,13 +134,40 @@ export default function DMPage() {
     navigate(`/dm/${convo._id}`);
   };
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError(`File "${file.name}" vượt quá 8MB, vui lòng chọn file nhỏ hơn.`);
+      return;
+    }
+    setFileError('');
+    setAttachedFile(file);
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim() || !conversationId) return;
-    socket
-      ? socket.emit('send_dm', { conversationId, content: input.trim() })
-      : await dmService.send(conversationId, input.trim());
+    if ((!input.trim() && !attachedFile) || !conversationId) return;
+
+    if (attachedFile) {
+      // Có file đính kèm -> gửi qua REST (multipart/form-data), server sẽ tự
+      // phát 'new_dm' qua socket cho cả 2 người sau khi lưu xong.
+      try {
+        await dmService.send(conversationId, input.trim(), attachedFile);
+      } catch (err) {
+        setFileError(err?.response?.data?.message || 'Gửi file thất bại, vui lòng thử lại.');
+        return;
+      }
+    } else {
+      socket
+        ? socket.emit('send_dm', { conversationId, content: input.trim() })
+        : await dmService.send(conversationId, input.trim());
+    }
+
     setInput('');
+    setAttachedFile(null);
+    setFileError('');
     clearTimeout(typingTimeoutRef.current);
     socket?.emit('dm_stop_typing', { conversationId });
   };
@@ -336,15 +367,39 @@ export default function DMPage() {
             </div>
 
             <form onSubmit={sendMessage} className="px-4 pb-4">
-              <div className="bg-cm-input rounded-lg flex items-center px-4 gap-3">
+              {attachedFile && (
+                <div className="mb-1 px-3 py-1.5 bg-cm-input rounded flex items-center gap-2 text-xs">
+                  <span>📎</span>
+                  <span className="text-cm-text truncate flex-1">{attachedFile.name}</span>
+                  <span className="text-cm-muted flex-shrink-0">{formatFileSize(attachedFile.size)}</span>
+                  <button type="button" onClick={() => setAttachedFile(null)} className="text-cm-muted hover:text-white flex-shrink-0">✕</button>
+                </div>
+              )}
+              {fileError && <p className="mb-1 text-red-400 text-xs">{fileError}</p>}
+
+              <div className="bg-cm-input rounded-lg flex items-center px-2 gap-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Đính kèm file (tối đa 8MB)"
+                  className="text-cm-muted hover:text-white text-lg px-2 py-3 flex-shrink-0"
+                >
+                  📎
+                </button>
                 <input
                   value={input}
                   onChange={handleTyping}
                   onBlur={() => socket?.emit('dm_stop_typing', { conversationId })}
                   placeholder={`Nhắn tin cho ${otherUser?.username || '...'}`}
-                  className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted"
+                  className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted min-w-0"
                 />
-                <button type="submit" className="text-cm-muted hover:text-white transition-colors">➤</button>
+                <button type="submit" className="text-cm-muted hover:text-white transition-colors px-2 flex-shrink-0">➤</button>
               </div>
             </form>
           </>
