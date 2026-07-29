@@ -350,6 +350,7 @@ export default function ChannelPage() {
         onNicknameClick={() => setShowNickname(true)}
         onLeaveClick={handleLeaveServer}
         displayName={myDisplayName}
+        onCoursesClick={() => navigate(`/servers/${serverId}/courses`)}
       />
 
       <CreateChannelModal

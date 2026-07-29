@@ -68,21 +68,21 @@
 | 3 | Upload và xem tài liệu                  | Hỗ trợ file PDF, DOCX, PNG                 |
 | 4 | Quản lý thành viên server               | Invite/kick hoạt động đúng                 |
 
-### Mục tiêu Milestone 2 – Learning System 🔄 Đang triển khai
+### Mục tiêu Milestone 2 – Learning System ✅ Hoàn thành
 
-| # | Mục tiêu                                  | Chỉ số đo lường                                              |
-| --- | ------------------------------------------ | --------------------------------------------------------------- |
-| 1 | Giảng viên tạo khóa học gắn với server     | Mỗi server lớp học có ít nhất 1 course, join qua mã mời         |
-| 2 | Sinh viên xem tài liệu bài học theo thứ tự | Lesson hiển thị đúng thứ tự, mở được file đính kèm              |
-| 3 | Sinh viên nộp bài tập trong course         | Submission lưu kèm file/text, gắn đúng deadline                 |
-| 4 | Giảng viên chấm điểm & phản hồi            | Điểm + feedback hiển thị real-time cho sinh viên                |
-| 5 | Nhắc deadline tự động                      | Thông báo gửi trước hạn nộp ít nhất 24 giờ                      |
+| # | Mục tiêu                                  | Chỉ số đo lường                                              | Trạng thái |
+| --- | ------------------------------------------ | --------------------------------------------------------------- | --- |
+| 1 | Giảng viên tạo khóa học gắn với server     | Mỗi server lớp học có ít nhất 1 course, join qua mã mời         | ✅ |
+| 2 | Sinh viên xem tài liệu bài học theo thứ tự | Lesson hiển thị đúng thứ tự, mở được file đính kèm              | ✅ |
+| 3 | Sinh viên nộp bài tập trong course         | Submission lưu kèm file/text, gắn đúng deadline                 | ✅ |
+| 4 | Giảng viên chấm điểm & phản hồi            | Điểm + feedback hiển thị real-time cho sinh viên                | ✅ |
+| 5 | Nhắc deadline tự động                      | Thông báo gửi trước hạn nộp ít nhất 24 giờ                      | ✅ |
 
 ### Mục tiêu dài hạn (Post-MVP, sau Milestone 2)
 
 | # | Mục tiêu                                       |
 | --- | ---------------------------------------------- |
-| 1 | Quiz tự động chấm điểm & Gradebook tổng hợp    |
+| 1 | Quiz tự động chấm điểm & thống kê tiến độ học tập nâng cao (biểu đồ, xu hướng điểm)    |
 | 2 | Voice/Video channel cho buổi học nhóm online   |
 | 3 | Tính năng tìm kiếm tin nhắn & file toàn server |
 | 4 | Giao diện mobile (iOS/Android)                 |
@@ -125,24 +125,26 @@
 
 ## 📐 Phạm vi Milestone 2 – Learning System (Scope)
 
-### ✅ Trong phạm vi (In Scope)
+### ✅ Trong phạm vi (In Scope) — đã triển khai ở bản này trừ khi ghi chú khác
 
-- Tạo & quản lý Course gắn với Server, enroll qua mã mời
-- Vai trò Instructor / TA / Student (mở rộng RBAC hiện có)
-- Đăng tải tài liệu bài học (Lesson) theo thứ tự
+- Tạo & quản lý Course gắn với Server, enroll qua mã mời riêng của course
+- Vai trò Instructor / TA / Student (tách biệt với role owner/moderator/member của Server)
+- Đăng tải tài liệu bài học (Lesson) theo thứ tự, sắp xếp lại bằng nút lên/xuống
 - Tạo bài tập (Assignment) có deadline và file đính kèm
-- Nộp bài (Submission) — text hoặc file
-- Chấm điểm & feedback (Grade)
-- Thông báo real-time khi có deadline gần kề hoặc có điểm mới
+- Nộp bài (Submission) — text hoặc file, hỗ trợ nộp lại (resubmit), tự đánh dấu nộp trễ hạn
+- Chấm điểm & feedback (Grade, thang điểm 10)
+- Thông báo real-time khi có điểm mới (qua Socket.io, sự kiện `grade_posted`)
+- Nhắc deadline tự động trước 24h cho sinh viên chưa nộp bài (job quét định kỳ, sự kiện `deadline_reminder`)
+- Bảng điểm tổng hợp (Gradebook) theo course cho instructor/TA
 
 ### ❌ Ngoài phạm vi (Out of Scope – Milestone 2)
 
 - Quiz tự động chấm điểm
-- Gradebook tổng hợp / thống kê tiến độ học tập
+- Thống kê tiến độ học tập nâng cao (biểu đồ, xu hướng điểm theo thời gian) — bảng điểm cơ bản (Gradebook) đã có sẵn
 - Lịch học / calendar view theo môn
 - Thảo luận (discussion thread) theo từng bài học
 - Chống đạo văn, chứng chỉ hoàn thành khóa học
 
 ---
 
-*Tài liệu gốc: Tuần 3 – Dự án CMCord. Cập nhật bổ sung Milestone 2 (Learning System).*
+*Tài liệu gốc: Tuần 3 – Dự án CMCord. Milestone 2 (Learning System) đã hoàn thành.*

@@ -139,6 +139,7 @@ export default function HomePage() {
         onNicknameClick={() => setShowNickname(true)}
         onLeaveClick={handleLeaveServer}
         displayName={myDisplayName}
+        onCoursesClick={selected ? () => navigate(`/servers/${selected._id}/courses`) : undefined}
       />
 
       <CreateChannelModal
