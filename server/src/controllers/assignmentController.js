@@ -85,15 +85,7 @@ const updateAssignment = async (req, res) => {
       assignment.title = title.trim();
     }
     if (description !== undefined) assignment.description = description;
-    if (deadline !== undefined) {
-      const nextDeadline = deadline ? new Date(deadline) : null;
-      // Deadline dời sang thời điểm mới trong tương lai -> cho phép deadlineReminderJob.js
-      // gửi nhắc lại (tránh trường hợp deadline cũ đã nhắc rồi, dời hạn nhưng không ai được báo).
-      if (nextDeadline && (!assignment.deadline || nextDeadline.getTime() !== assignment.deadline.getTime())) {
-        assignment.remindersSent = false;
-      }
-      assignment.deadline = nextDeadline;
-    }
+    if (deadline !== undefined) assignment.deadline = deadline ? new Date(deadline) : null;
 
     await assignment.save();
     res.json({ success: true, data: assignment });

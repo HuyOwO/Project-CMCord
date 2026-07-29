@@ -190,43 +190,7 @@ const removeMember = async (req, res) => {
   }
 };
 
-// GET /api/courses/:id/gradebook -- instructor/TA: bảng điểm tổng hợp toàn bộ course
-// (mỗi hàng 1 sinh viên, mỗi cột 1 assignment, kèm điểm trung bình).
-const getGradebook = async (req, res) => {
-  try {
-    const course = await Course.findById(req.params.id).populate('members.user', 'username avatar');
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
-
-    const role = getCourseRole(course, req.user._id);
-    if (!canManageCourse(role))
-      return res.status(403).json({ success: false, message: 'Chỉ instructor/TA mới xem được bảng điểm' });
-
-    const assignments = await Assignment.find({ course: course._id }).select('title deadline').sort({ createdAt: 1 });
-    const submissions = await Submission.find({ assignment: { $in: assignments.map((a) => a._id) } })
-      .select('assignment student grade');
-
-    const scoreByKey = {}; // `${studentId}:${assignmentId}` -> score | null
-    submissions.forEach((s) => {
-      scoreByKey[`${s.student}:${s.assignment}`] = s.grade?.score ?? null;
-    });
-
-    const students = course.members.filter((m) => m.role === 'student');
-    const rows = students.map((m) => {
-      const uid = (m.user._id || m.user).toString();
-      const scores = assignments.map((a) => scoreByKey[`${uid}:${a._id}`] ?? null);
-      const graded = scores.filter((s) => s != null);
-      const average = graded.length ? graded.reduce((sum, s) => sum + s, 0) / graded.length : null;
-      return { student: m.user, scores, average };
-    });
-
-    res.json({ success: true, data: { assignments, rows } });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
 module.exports = {
   getCourses, createCourse, getCourse, joinCourse,
   updateCourse, deleteCourse, updateMemberRole, removeMember,
-  getGradebook,
 };

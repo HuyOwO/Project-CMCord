@@ -17,8 +17,4 @@ const serverSchema = new mongoose.Schema({
   inviteCode: { type: String, unique: true, default: () => uuidv4().slice(0, 8) },
 }, { timestamps: true });
 
-<<<<<<< HEAD
 module.exports = mongoose.model('Server', serverSchema);
-=======
-module.exports = mongoose.model('Server', serverSchema);
->>>>>>> milestone2-import

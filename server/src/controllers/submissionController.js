@@ -103,7 +103,6 @@ const gradeSubmission = async (req, res) => {
       assignmentId: assignment._id,
       assignmentTitle: assignment.title,
       courseId: assignment.course,
-      courseName: course?.name,
       score: submission.grade.score,
       feedback: submission.grade.feedback,
     });

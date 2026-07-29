@@ -350,10 +350,7 @@ export default function ChannelPage() {
         onNicknameClick={() => setShowNickname(true)}
         onLeaveClick={handleLeaveServer}
         displayName={myDisplayName}
-<<<<<<< HEAD
-=======
         onCoursesClick={() => navigate(`/servers/${serverId}/courses`)}
->>>>>>> milestone2-import
       />
 
       <CreateChannelModal
@@ -659,8 +656,4 @@ export default function ChannelPage() {
       )}
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> milestone2-import

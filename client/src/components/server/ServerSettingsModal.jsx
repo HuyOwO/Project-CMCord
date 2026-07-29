@@ -61,8 +61,4 @@ export default function ServerSettingsModal({ isOpen, onClose, server, onSave, o
       </div>
     </Modal>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> milestone2-import

@@ -179,9 +179,6 @@ export const messageService = {
     const { data } = await api.post(`/channels/messages/${messageId}/react`, { emoji });
     return data.data;
   },
-<<<<<<< HEAD
-};
-=======
 };
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -218,10 +215,6 @@ export const courseService = {
   },
   removeMember: async (courseId, userId) => {
     await api.delete(`/courses/${courseId}/members/${userId}`);
-  },
-  getGradebook: async (id) => {
-    const { data } = await api.get(`/courses/${id}/gradebook`);
-    return data.data;
   },
 };
 
@@ -296,4 +289,3 @@ export const submissionService = {
     return data.data;
   },
 };
->>>>>>> milestone2-import

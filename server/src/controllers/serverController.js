@@ -244,8 +244,4 @@ module.exports = {
   getServers, createServer, getServer, joinServer, deleteServer,
   updateServer, updateNickname, leaveServer,
   updateMemberRole, kickMember, banMember, unbanMember,
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> milestone2-import

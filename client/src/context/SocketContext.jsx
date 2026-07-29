@@ -50,8 +50,4 @@ export const SocketProvider = ({ children }) => {
       {children}
     </SocketContext.Provider>
   );
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> milestone2-import

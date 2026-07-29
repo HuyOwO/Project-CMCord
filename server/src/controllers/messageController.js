@@ -153,8 +153,4 @@ const toggleReaction = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 module.exports = { getMessages, sendMessage, updateMessage, deleteMessage, togglePin, toggleReaction };
-=======
-module.exports = { getMessages, sendMessage, updateMessage, deleteMessage, togglePin, toggleReaction };
->>>>>>> milestone2-import

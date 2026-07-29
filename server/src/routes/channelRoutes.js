@@ -11,8 +11,4 @@ router.post('/:serverId/channels',          createChannel);
 router.patch('/:serverId/channels/:id',     updateChannel);
 router.delete('/:serverId/channels/:id',    deleteChannel);
 
-<<<<<<< HEAD
 module.exports = router;
-=======
-module.exports = router;
->>>>>>> milestone2-import

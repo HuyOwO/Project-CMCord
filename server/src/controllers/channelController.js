@@ -81,8 +81,4 @@ const deleteChannel = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 module.exports = { getChannels, createChannel, updateChannel, deleteChannel };
-=======
-module.exports = { getChannels, createChannel, updateChannel, deleteChannel };
->>>>>>> milestone2-import

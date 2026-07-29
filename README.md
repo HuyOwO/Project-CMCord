@@ -11,10 +11,7 @@
 - **Tin nhắn riêng (Direct Message)**: nhắn 1-1 với người chung server hoặc bạn bè, real-time, đính kèm file, reaction, sửa/xoá
 - **Bạn bè**: gửi/nhận lời mời kết bạn theo username, chấp nhận/từ chối, danh sách bạn bè kèm trạng thái online, nhắn tin trực tiếp không cần chung server
 - **Chia sẻ file**: đính kèm file tối đa **8MB**/tin nhắn; lưu trên đĩa cục bộ khi chạy dev, tự chuyển sang **Cloudinary** (free) khi deploy thật
-<<<<<<< HEAD
-=======
-- **🎓 Learning System (Milestone 2 – MỚI)**: mỗi server có thể có nhiều khoá học (Course) riêng, join bằng mã mời riêng của khoá học; vai trò Instructor / TA / Student; đăng tài liệu bài học (Lesson) theo thứ tự; giao bài tập (Assignment) có deadline + file đính kèm; sinh viên nộp bài (Submission, hỗ trợ nộp lại); giảng viên/TA chấm điểm (thang 10) kèm nhận xét, sinh viên nhận thông báo real-time (toast) ngay khi có điểm mới hoặc bài tập sắp đến hạn (nhắc tự động trước 24h); bảng điểm tổng hợp (Gradebook) cho instructor/TA
->>>>>>> milestone2-import
+- **🎓 Learning System (Milestone 2 – MỚI)**: mỗi server có thể có nhiều khoá học (Course) riêng, join bằng mã mời riêng của khoá học; vai trò Instructor / TA / Student; đăng tài liệu bài học (Lesson) theo thứ tự; giao bài tập (Assignment) có deadline + file đính kèm; sinh viên nộp bài (Submission, hỗ trợ nộp lại); giảng viên/TA chấm điểm (thang 10) kèm nhận xét, sinh viên nhận thông báo real-time ngay khi có điểm mới
 
 ## Tech Stack
 
@@ -32,13 +29,9 @@
 | Milestone | Nội dung | Trạng thái |
 | --- | --- | --- |
 | **1 – Chat MVP** | Auth, Server/Channel, nhắn tin real-time, tìm kiếm, tin nhắn riêng (DM), bạn bè, chia sẻ file | ✅ Hoàn thành |
-<<<<<<< HEAD
-| **2 – Learning System** | Course & Enrollment, Lesson, Assignment & Submission, Grading | ⏳ Chưa bắt đầu |
-=======
-| **2 – Learning System** | Course & Enrollment, Lesson, Assignment & Submission, Grading, thông báo real-time, nhắc deadline tự động, Gradebook | ✅ Hoàn thành |
+| **2 – Learning System** | Course & Enrollment, Lesson, Assignment & Submission, Grading, thông báo real-time khi có điểm mới | 🔄 Bản đầu tiên đã triển khai (API + UI cơ bản) |
 
-Ghi chú: sắp xếp lại thứ tự bài học dùng nút lên/xuống thay vì kéo-thả (đủ dùng, chắc chắn hoạt động trên mọi thiết bị).
->>>>>>> milestone2-import
+Còn lại của Milestone 2 (chưa làm ở bản này): nhắc deadline tự động (cron job), Gradebook tổng hợp theo course, kéo-thả sắp xếp lại thứ tự bài học (hiện dùng nút lên/xuống).
 
 > Chi tiết phạm vi từng milestone xem tại [`PRODUCT_VISION.md`](./PRODUCT_VISION.md).
 
@@ -81,32 +74,16 @@ Backend API: <http://localhost:5000/api>
 cmcord/
 ├── client/          # React frontend
 │   └── src/
-<<<<<<< HEAD
-│       ├── pages/       # LoginPage, RegisterPage, HomePage, ChannelPage, DMPage
-=======
 │       ├── pages/       # LoginPage, RegisterPage, HomePage, ChannelPage, DMPage, CoursesPage, CourseDetailPage
->>>>>>> milestone2-import
 │       ├── components/
 │       │   ├── server/    # ServerSidebar, MemberListPanel, SearchModal, các modal server
 │       │   ├── channel/   # ChannelSidebar, CreateChannelModal
 │       │   ├── dm/        # DMSidebar, FriendsPanel, NewDMModal
-<<<<<<< HEAD
-=======
 │       │   ├── course/    # Learning System: CourseListSidebar, LessonList, AssignmentList, GradingPanel...
->>>>>>> milestone2-import
 │       │   ├── layout/    # UserPanel
 │       │   └── common/    # Modal dùng chung
 │       ├── context/     # AuthContext, SocketContext
 │       ├── hooks/       # useAuth, useSocket, useServerSelect
-<<<<<<< HEAD
-│       └── services/    # API calls (auth, server, channel, message, dm, friend, search)
-├── server/          # Node.js backend
-│   └── src/
-│       ├── models/      # User, Server, Channel, Message, Conversation, DirectMessage, Friendship
-│       ├── controllers/ # auth, server, channel, message, dm, friend, search, user
-│       ├── routes/      # REST API routes
-│       ├── socket/      # Socket.io handler (channel, DM, typing, presence, friend notification)
-=======
 │       └── services/    # API calls (auth, server, channel, message, dm, friend, search, course, lesson, assignment, submission)
 ├── server/          # Node.js backend
 │   └── src/
@@ -114,7 +91,6 @@ cmcord/
 │       ├── controllers/ # auth, server, channel, message, dm, friend, search, user, course, lesson, assignment, submission
 │       ├── routes/      # REST API routes
 │       ├── socket/      # Socket.io handler (channel, DM, typing, presence, friend notification, grade notification)
->>>>>>> milestone2-import
 │       └── config/      # DB connection, Cloudinary config
 ├── AGENTS.md        # Hướng dẫn cho Codex agent
 └── package.json     # Root scripts
@@ -176,10 +152,6 @@ DELETE /api/friends/:id                      # từ chối / huỷ lời mời /
 
 # User
 PATCH  /api/users/me
-<<<<<<< HEAD
-```
-
-=======
 
 # Learning System (Milestone 2)
 GET    /api/servers/:serverId/courses           # danh sách khoá học trong 1 server
@@ -190,7 +162,6 @@ DELETE /api/courses/:id                         # instructor, xoá kèm lesson/a
 POST   /api/courses/join                        # enroll bằng mã mời riêng của course -> role student
 PATCH  /api/courses/:id/members/:userId/role    # instructor đổi role ta/student
 DELETE /api/courses/:id/members/:userId         # instructor xoá thành viên khỏi course
-GET    /api/courses/:id/gradebook               # instructor/TA: bảng điểm tổng hợp toàn bộ course
 
 GET    /api/courses/:courseId/lessons
 POST   /api/courses/:courseId/lessons           # instructor/TA, multipart, hỗ trợ file đính kèm
@@ -212,16 +183,10 @@ PATCH  /api/submissions/:id/grade               # instructor/TA chấm điểm (
 ## Socket.io Events (bổ sung Milestone 2)
 
 ```
-grade_posted       { submissionId, assignmentId, assignmentTitle, courseId, courseName, score, feedback }
-deadline_reminder  { assignmentId, assignmentTitle, courseId, courseName, deadline }
+grade_posted   { submissionId, assignmentId, assignmentTitle, courseId, score, feedback }
 ```
-Cả 2 sự kiện phát tới phòng riêng `user:<studentId>` (cùng cơ chế với thông báo lời mời kết bạn):
-- `grade_posted`: ngay khi instructor/TA chấm điểm một bài nộp.
-- `deadline_reminder`: tự động, do `server/src/jobs/deadlineReminderJob.js` quét mỗi 15 phút, báo trước 24h cho sinh viên CHƯA nộp bài (không báo lại 2 lần cho cùng 1 assignment).
+Phát tới phòng riêng `user:<studentId>` (cùng cơ chế với thông báo lời mời kết bạn) ngay khi instructor/TA chấm điểm một bài nộp.
 
-Frontend hiển thị cả 2 sự kiện dưới dạng toast toàn cục (`client/src/components/common/NotificationToastHost.jsx`, mount ở `App.jsx`) — hoạt động ở bất kỳ trang nào, không cần đang mở đúng course đó. Bấm vào toast sẽ điều hướng qua route ngắn `/courses/:courseId` để tự tra ra đúng server rồi mở khoá học.
-
->>>>>>> milestone2-import
 ## Team
 
 BFH Project – CMCord

@@ -116,8 +116,4 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
       </div>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> milestone2-import

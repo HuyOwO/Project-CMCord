@@ -21,8 +21,4 @@ export const resolveFileUrl = (path) => {
   if (!path) return path;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return `${API_BASE_URL}${path}`;
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> milestone2-import

@@ -40,8 +40,4 @@ export default function NicknameModal({ isOpen, onClose, currentNickname, onSave
       </form>
     </Modal>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> milestone2-import

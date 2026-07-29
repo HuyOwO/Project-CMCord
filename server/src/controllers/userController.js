@@ -14,8 +14,4 @@ const updateProfile = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 module.exports = { updateProfile };
-=======
-module.exports = { updateProfile };
->>>>>>> milestone2-import
