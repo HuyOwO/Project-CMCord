@@ -4,6 +4,9 @@ import UserPanel from '../layout/UserPanel';
 // Sidebar 240px: tên server + danh sách channel + UserPanel.
 // Trước đây được copy gần như y hệt trong HomePage và ChannelPage,
 // chỉ khác cách highlight channel đang active.
+//
+// Milestone 2 (Learning System): thêm mục "🎓 Khóa học" ngay trên danh sách
+// channel, dẫn sang không gian học tập (Course) của server này.
 export default function ChannelSidebar({
   server,
   channels,
@@ -21,6 +24,8 @@ export default function ChannelSidebar({
   onNicknameClick,
   onLeaveClick,
   displayName,
+  onCoursesClick,
+  isCoursesActive = false,
 }) {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [serverMenuOpen, setServerMenuOpen] = useState(false);
@@ -80,6 +85,19 @@ export default function ChannelSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        {server && onCoursesClick && (
+          <button
+            onClick={onCoursesClick}
+            className={`w-full text-left px-2 py-1.5 rounded text-sm flex items-center gap-1.5 mb-1 ${
+              isCoursesActive
+                ? 'bg-cm-input text-white'
+                : 'text-cm-muted hover:bg-cm-input hover:text-cm-text'
+            }`}
+          >
+            <span>🎓</span> <span className="truncate">Khóa học</span>
+          </button>
+        )}
+
         {server && (
           <div className="flex items-center justify-between px-2 py-1">
             <span className="text-cm-muted text-xs font-semibold uppercase tracking-wide">

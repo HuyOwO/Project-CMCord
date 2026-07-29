@@ -23,4 +23,8 @@ export const getDisplayName = (server, userId, fallbackUsername) => {
   return member?.nickname || fallbackUsername;
 };
 
+<<<<<<< HEAD
 export const canChangeRole = (actorRole) => actorRole === 'owner';
+=======
+export const canChangeRole = (actorRole) => actorRole === 'owner';
+>>>>>>> milestone2-import

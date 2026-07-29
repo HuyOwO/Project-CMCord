@@ -60,4 +60,8 @@ export default function CreateChannelModal({ isOpen, onClose, onCreate, channel 
       </form>
     </Modal>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> milestone2-import

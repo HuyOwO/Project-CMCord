@@ -14,4 +14,8 @@ router.delete('/messages/:id',        deleteMessage);
 router.patch('/messages/:id/pin',  togglePin);
 router.post('/messages/:id/react', toggleReaction);
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> milestone2-import

@@ -16,4 +16,8 @@ export default function UserPanel({ user, onLogout, displayName }) {
       </button>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> milestone2-import

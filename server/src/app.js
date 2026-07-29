@@ -10,6 +10,17 @@ const messageRoutes = require('./routes/messageRoutes');
 const userRoutes     = require('./routes/userRoutes');
 const dmRoutes       = require('./routes/dmRoutes');
 const friendRoutes   = require('./routes/friendRoutes');
+<<<<<<< HEAD
+=======
+
+// Milestone 2 – Learning System (Course / Lesson / Assignment / Submission)
+const courseRoutes       = require('./routes/courseRoutes');
+const courseDetailRoutes = require('./routes/courseDetailRoutes');
+const lessonRoutes       = require('./routes/lessonRoutes');
+const assignmentRoutes   = require('./routes/assignmentRoutes');
+const submissionRoutes   = require('./routes/submissionRoutes');
+
+>>>>>>> milestone2-import
 const app = express();
 
 // origin: true => phản chiếu origin của request, cho phép mọi máy trong LAN gọi API khi test.
@@ -22,11 +33,24 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/auth',     authRoutes);
 app.use('/api/servers',  serverRoutes);
 app.use('/api/servers',  channelRoutes);
+<<<<<<< HEAD
+=======
+app.use('/api/servers',  courseRoutes); // GET/POST /api/servers/:serverId/courses
+>>>>>>> milestone2-import
 app.use('/api/channels', messageRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dm', dmRoutes);
 app.use('/api/friends', friendRoutes);
 
+<<<<<<< HEAD
+=======
+// Milestone 2 – Learning System
+app.use('/api/courses',     courseDetailRoutes); // /api/courses/:id, /join, /:id/members/..., + nested lessons/assignments
+app.use('/api/lessons',     lessonRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/submissions', submissionRoutes);
+
+>>>>>>> milestone2-import
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));
 
@@ -48,4 +72,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
+<<<<<<< HEAD
 module.exports = app;
+=======
+module.exports = app;
+>>>>>>> milestone2-import

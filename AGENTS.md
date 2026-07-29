@@ -43,6 +43,7 @@ cmcord/
 │   │   │   ├── layout/            # Sidebar, Header, Layout...
 │   │   │   ├── server/            # ServerList, ServerCard...
 │   │   │   ├── channel/           # ChannelList, ChannelItem...
+<<<<<<< HEAD
 │   │   │   └── message/           # MessageList, MessageInput, MessageItem...
 │   │   ├── pages/                 # Route-level pages
 │   │   │   ├── LoginPage.jsx
@@ -52,6 +53,14 @@ cmcord/
 │   │   ├── context/               # React Context (AuthContext, SocketContext)
 │   │   ├── hooks/                 # Custom hooks (useAuth, useSocket, useMessages)
 │   │   ├── services/              # API calls (authService, serverService...)
+=======
+│   │   │   ├── course/            # Learning System (Milestone 2)
+│   │   │   └── message/           # MessageList, MessageInput, MessageItem...
+│   │   ├── pages/                 # Route-level pages
+│   │   ├── context/               # React Context (AuthContext, SocketContext)
+│   │   ├── hooks/                 # Custom hooks (useAuth, useSocket, useServerSelect)
+│   │   ├── services/              # API calls (auth, server, channel, message, course...)
+>>>>>>> milestone2-import
 │   │   ├── socket/                # Socket.io client setup
 │   │   ├── utils/                 # Helper functions
 │   │   ├── App.jsx
@@ -62,6 +71,7 @@ cmcord/
 ├── server/                        # Node.js backend
 │   ├── src/
 │   │   ├── config/
+<<<<<<< HEAD
 │   │   │   └── db.js              # MongoDB connection
 │   │   ├── controllers/           # Route handlers
 │   │   │   ├── authController.js
@@ -83,6 +93,13 @@ cmcord/
 │   │   │   └── messageRoutes.js
 │   │   ├── socket/
 │   │   │   └── socketHandler.js   # Socket.io event handlers
+=======
+│   │   ├── controllers/           # Route handlers
+│   │   ├── middleware/
+│   │   ├── models/                # Mongoose schemas (bao gồm Course, Lesson, Assignment, Submission)
+│   │   ├── routes/
+│   │   ├── socket/                # Socket.io handler
+>>>>>>> milestone2-import
 │   │   └── app.js
 │   ├── index.js                   # Entry point
 │   └── package.json
@@ -95,6 +112,7 @@ cmcord/
 ## ⚙️ Lệnh chạy dự án
 
 ```bash
+<<<<<<< HEAD
 # Cài dependencies (chạy từ root)
 npm run install:all
 
@@ -108,6 +126,12 @@ npm run server
 npm run client
 
 # Chạy test
+=======
+npm run install:all
+npm run dev
+npm run server
+npm run client
+>>>>>>> milestone2-import
 npm test
 ```
 
@@ -115,6 +139,7 @@ npm test
 
 ---
 
+<<<<<<< HEAD
 ## 🌐 API Endpoints
 
 ### Auth
@@ -225,6 +250,8 @@ user_left        { userId }                Thành viên rời channel
 
 ---
 
+=======
+>>>>>>> milestone2-import
 ## 📋 Coding Conventions
 
 ### Chung
@@ -238,10 +265,14 @@ user_left        { userId }                Thành viên rời channel
 - Middleware xác thực JWT đặt trong `authMiddleware.js`, dùng lại cho tất cả protected routes
 - Response format thống nhất:
   ```js
+<<<<<<< HEAD
   // Thành công
   res.status(200).json({ success: true, data: ... })
 
   // Lỗi
+=======
+  res.status(200).json({ success: true, data: ... })
+>>>>>>> milestone2-import
   res.status(400).json({ success: false, message: '...' })
   ```
 - Biến môi trường đọc từ `.env`, không hardcode
@@ -251,8 +282,12 @@ user_left        { userId }                Thành viên rời channel
 - Mỗi component một file, đặt trong đúng thư mục (`components/`, `pages/`)
 - State toàn cục dùng **React Context**, không Redux (MVP)
 - API calls đặt trong `services/`, không gọi Axios trực tiếp trong component
+<<<<<<< HEAD
 - Tên file component: **PascalCase** (vd: `MessageList.jsx`)
 - Tên file khác: **camelCase** (vd: `authService.js`)
+=======
+- Tên file component: **PascalCase**, tên file khác: **camelCase**
+>>>>>>> milestone2-import
 
 ---
 
@@ -266,8 +301,11 @@ JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
 ```
 
+<<<<<<< HEAD
 > **.env không được commit lên GitHub.** Đã có trong `.gitignore`.
 
+=======
+>>>>>>> milestone2-import
 ---
 
 ## ✅ Quy tắc khi làm task
@@ -280,6 +318,7 @@ CLIENT_URL=http://localhost:5173
 
 ---
 
+<<<<<<< HEAD
 ## 🚫 Những điều KHÔNG làm
 
 - Không dùng `console.log` trong production code (dùng trong dev thì OK, có comment)
@@ -291,3 +330,6 @@ CLIENT_URL=http://localhost:5173
 ---
 
 *Cập nhật lần cuối: Tuần 3 – Dự án CMCord*
+=======
+*Cập nhật lần cuối: Milestone 2 – Learning System*
+>>>>>>> milestone2-import

@@ -27,4 +27,8 @@ router.delete('/:id/members/:userId',     kickMember);
 router.post('/:id/bans/:userId',          banMember);
 router.delete('/:id/bans/:userId',        unbanMember);
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> milestone2-import

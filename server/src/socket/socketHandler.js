@@ -29,8 +29,14 @@ const initSocket = (httpServer) => {
     console.log(`User connected: ${socket.user.username} (${socket.id})`);
     io.emit('user_online', { userId: socket.user._id });
 
+<<<<<<< HEAD
     // Phòng riêng theo user -- dùng để bắn thông báo (lời mời kết bạn, v.v.)
     // tới đúng người dùng đó dù họ đang mở trang nào, không cần biết trước channelId/conversationId.
+=======
+    // Phòng riêng theo user -- dùng để bắn thông báo (lời mời kết bạn, điểm bài tập mới, v.v.)
+    // tới đúng người dùng đó dù họ đang mở trang nào, không cần biết trước channelId/conversationId.
+    // Milestone 2: submissionController.js dùng lại đúng phòng này để phát 'grade_posted'.
+>>>>>>> milestone2-import
     socket.join(`user:${socket.user._id}`);
 
     // Vào channel
@@ -129,4 +135,8 @@ const initSocket = (httpServer) => {
   return io;
 };
 
+<<<<<<< HEAD
 module.exports = initSocket;
+=======
+module.exports = initSocket;
+>>>>>>> milestone2-import

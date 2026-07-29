@@ -179,4 +179,121 @@ export const messageService = {
     const { data } = await api.post(`/channels/messages/${messageId}/react`, { emoji });
     return data.data;
   },
+<<<<<<< HEAD
 };
+=======
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// Milestone 2 – Learning System (Course / Lesson / Assignment / Submission)
+// ────────────────────────────────────────────────────────────────────────────
+
+export const courseService = {
+  getAll: async (serverId) => {
+    const { data } = await api.get(`/servers/${serverId}/courses`);
+    return data.data;
+  },
+  create: async (serverId, { name, description }) => {
+    const { data } = await api.post(`/servers/${serverId}/courses`, { name, description });
+    return data.data;
+  },
+  getOne: async (id) => {
+    const { data } = await api.get(`/courses/${id}`);
+    return data.data;
+  },
+  update: async (id, { name, description }) => {
+    const { data } = await api.patch(`/courses/${id}`, { name, description });
+    return data.data;
+  },
+  remove: async (id) => {
+    await api.delete(`/courses/${id}`);
+  },
+  join: async (inviteCode) => {
+    const { data } = await api.post('/courses/join', { inviteCode });
+    return data.data;
+  },
+  updateMemberRole: async (courseId, userId, role) => {
+    const { data } = await api.patch(`/courses/${courseId}/members/${userId}/role`, { role });
+    return data.data;
+  },
+  removeMember: async (courseId, userId) => {
+    await api.delete(`/courses/${courseId}/members/${userId}`);
+  },
+  getGradebook: async (id) => {
+    const { data } = await api.get(`/courses/${id}/gradebook`);
+    return data.data;
+  },
+};
+
+export const lessonService = {
+  getAll: async (courseId) => {
+    const { data } = await api.get(`/courses/${courseId}/lessons`);
+    return data.data;
+  },
+  create: async (courseId, { title, content }, file = null) => {
+    const form = new FormData();
+    form.append('title', title);
+    if (content) form.append('content', content);
+    if (file) form.append('file', file);
+    const { data } = await api.post(`/courses/${courseId}/lessons`, form);
+    return data.data;
+  },
+  update: async (id, { title, content }) => {
+    const { data } = await api.patch(`/lessons/${id}`, { title, content });
+    return data.data;
+  },
+  reorder: async (id, order) => {
+    const { data } = await api.patch(`/lessons/${id}/reorder`, { order });
+    return data.data;
+  },
+  remove: async (id) => {
+    await api.delete(`/lessons/${id}`);
+  },
+};
+
+export const assignmentService = {
+  getAll: async (courseId) => {
+    const { data } = await api.get(`/courses/${courseId}/assignments`);
+    return data.data;
+  },
+  create: async (courseId, { title, description, deadline }, file = null) => {
+    const form = new FormData();
+    form.append('title', title);
+    if (description) form.append('description', description);
+    if (deadline) form.append('deadline', deadline);
+    if (file) form.append('file', file);
+    const { data } = await api.post(`/courses/${courseId}/assignments`, form);
+    return data.data;
+  },
+  getOne: async (id) => {
+    const { data } = await api.get(`/assignments/${id}`);
+    return data.data;
+  },
+  update: async (id, { title, description, deadline }) => {
+    const { data } = await api.patch(`/assignments/${id}`, { title, description, deadline });
+    return data.data;
+  },
+  remove: async (id) => {
+    await api.delete(`/assignments/${id}`);
+  },
+};
+
+export const submissionService = {
+  // instructor/TA -> tất cả bài nộp; student -> chỉ bài nộp của chính mình
+  getAll: async (assignmentId) => {
+    const { data } = await api.get(`/assignments/${assignmentId}/submissions`);
+    return data.data;
+  },
+  submit: async (assignmentId, content, file = null) => {
+    const form = new FormData();
+    if (content) form.append('content', content);
+    if (file) form.append('file', file);
+    const { data } = await api.post(`/assignments/${assignmentId}/submissions`, form);
+    return data.data;
+  },
+  grade: async (id, { score, feedback }) => {
+    const { data } = await api.patch(`/submissions/${id}/grade`, { score, feedback });
+    return data.data;
+  },
+};
+>>>>>>> milestone2-import
