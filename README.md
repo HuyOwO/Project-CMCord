@@ -1,12 +1,12 @@
 # CMCord 💬
 
-Ứng dụng chat real-time học thuật lấy cảm hứng từ Discord, đang mở rộng thêm hệ thống học tập (Learning System) cho sinh viên và giảng viên.
----
+Ứng dụng chat real-time học thuật lấy cảm hứng từ Discord, tích hợp hệ thống học tập (Learning System) cho sinh viên và giảng viên.
+
 # ⚠️ Disclaimer 
 ## (ĐỌC TRƯỚC KHI CÀI ĐẶT)
 
 > **Phần mềm không có bất kì sự liên kết tới cơ quan hay tổ chức khác.**  
-> Mục đích của dự án hoàn toàn mang tính giáo dục, phát triển phần mềm. 
+> Mục đích của dự án hoàn toàn mang tính giáo dục và phát triển phần mềm. 
 ---
 ## ✨ Tính năng chính
 
