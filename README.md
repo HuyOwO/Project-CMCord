@@ -1,7 +1,13 @@
 # CMCord 💬
 
 Ứng dụng chat real-time học thuật lấy cảm hứng từ Discord, đang mở rộng thêm hệ thống học tập (Learning System) cho sinh viên và giảng viên.
+---
+# ⚠️ Disclaimer 
+## (ĐỌC TRƯỚC KHI CÀI ĐẶT)
 
+> **Phần mềm không có bất kì sự liên kết tới cơ quan hay tổ chức khác.**  
+> Mục đích của dự án hoàn toàn mang tính giáo dục, phát triển phần mềm. 
+---
 ## ✨ Tính năng chính
 
 - **Auth**: đăng ký / đăng nhập bằng JWT, đổi mật khẩu
@@ -179,17 +185,8 @@ GET    /api/assignments/:id/submissions         # instructor/TA: tất cả; stu
 POST   /api/assignments/:id/submissions         # student nộp/nộp lại, multipart
 PATCH  /api/submissions/:id/grade               # instructor/TA chấm điểm (0-10) + nhận xét, bắn socket 'grade_posted'
 ```
-
-## Socket.io Events (bổ sung Milestone 2)
-
-```
-grade_posted   { submissionId, assignmentId, assignmentTitle, courseId, score, feedback }
-```
-Phát tới phòng riêng `user:<studentId>` (cùng cơ chế với thông báo lời mời kết bạn) ngay khi instructor/TA chấm điểm một bài nộp.
-
 ## Team
-
-BFH Project – CMCord
+Project – CMCord
 Môn: Phát triển ứng dụng / Dự án phần mềm
 
 ## About
