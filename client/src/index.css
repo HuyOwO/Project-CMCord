@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #1e1f22;
+  color: #dbdee1;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #1e1f22; border-radius: 3px; }
