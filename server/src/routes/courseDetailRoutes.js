@@ -1,7 +1,7 @@
 const express = require('express');
 const {
   getCourse, joinCourse, updateCourse, deleteCourse,
-  updateMemberRole, removeMember,
+  updateMemberRole, removeMember, getGradebook,
 } = require('../controllers/courseController');
 const { getLessons, createLesson } = require('../controllers/lessonController');
 const { getAssignments, createAssignment } = require('../controllers/assignmentController');
@@ -19,6 +19,7 @@ router.delete('/:id',  deleteCourse);
 
 router.patch('/:id/members/:userId/role', updateMemberRole);
 router.delete('/:id/members/:userId',     removeMember);
+router.get('/:id/gradebook',              getGradebook);
 
 router.get('/:courseId/lessons',  getLessons);
 router.post('/:courseId/lessons', upload.single('file'), createLesson);

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { serverService, dmService, friendService } from '../services';
-import { resolveFileUrl } from '../config';
+import AttachmentPreview from '../components/common/AttachmentPreview';
 import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth from '../hooks/useAuth';
 import useSocket, { useOnlineUsers } from '../hooks/useSocket';
@@ -372,10 +372,7 @@ export default function DMPage() {
                         )}
 
                         {msg.fileUrl && (
-                          <a href={resolveFileUrl(msg.fileUrl)} target="_blank" rel="noreferrer"
-                            className="text-cm-accent text-xs hover:underline mt-1 block">
-                            📎 Tải file đính kèm
-                          </a>
+                          <AttachmentPreview fileUrl={msg.fileUrl} fileName={msg.fileName} fileType={msg.fileType} />
                         )}
 
                         {msg.reactions?.length > 0 && (

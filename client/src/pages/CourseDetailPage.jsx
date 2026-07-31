@@ -17,6 +17,7 @@ import LessonList from '../components/course/LessonList';
 import AssignmentModal from '../components/course/AssignmentModal';
 import AssignmentList from '../components/course/AssignmentList';
 import CourseMembersPanel from '../components/course/CourseMembersPanel';
+import GradebookTable from '../components/course/GradebookTable';
 import { getRole } from '../utils/permissions';
 import { getCourseRole, canManageCourse, isCourseInstructor } from '../utils/coursePermissions';
 
@@ -25,6 +26,7 @@ const TABS = [
   { key: 'lessons',     label: '📚 Bài học' },
   { key: 'assignments', label: '📝 Bài tập' },
   { key: 'members',     label: '👥 Thành viên' },
+  { key: 'gradebook',   label: '📊 Bảng điểm', instructorOnly: true },
 ];
 
 export default function CourseDetailPage() {
@@ -41,7 +43,8 @@ export default function CourseDetailPage() {
   const [lessons, setLessons] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [tab, setTab] = useState('lessons');
-  const [notice, setNotice] = useState(null);
+  const [loadingCourse, setLoadingCourse] = useState(true);
+  const [notEnrolled, setNotEnrolled] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
@@ -61,25 +64,47 @@ export default function CourseDetailPage() {
   }, [serverId]);
 
   const loadCourse = () => courseService.getOne(courseId).then(setCourse);
-  const loadLessons = () => lessonService.getAll(courseId).then(setLessons);
-  const loadAssignments = () => assignmentService.getAll(courseId).then(setAssignments);
+  const loadLessons = () => lessonService.getAll(courseId).then(setLessons).catch(() => {});
+  const loadAssignments = () => assignmentService.getAll(courseId).then(setAssignments).catch(() => {});
 
   useEffect(() => {
+    // Reset NGAY khi đổi course (kể cả trước khi API trả lời), tránh hiện tượng
+    // "kẹt" ở dữ liệu/quyền của course cũ trong lúc course mới đang tải hoặc
+    // nếu tài khoản này chưa tham gia course mới (request bị 403).
     setTab('lessons');
-    loadCourse();
-    loadLessons();
-    loadAssignments();
+    setCourse(null);
+    setLessons([]);
+    setAssignments([]);
+    setNotEnrolled(false);
+    setLoadingCourse(true);
+
+    let cancelled = false;
+    courseService.getOne(courseId)
+      .then((c) => {
+        if (cancelled) return;
+        setCourse(c);
+        loadLessons();
+        loadAssignments();
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        // 403 = tài khoản chưa phải thành viên course này (không phải lỗi thật)
+        if (err.response?.status === 403) setNotEnrolled(true);
+      })
+      .finally(() => { if (!cancelled) setLoadingCourse(false); });
+
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
-  // Milestone 2: thông báo real-time khi bài nộp của mình vừa được chấm điểm,
-  // dùng chung phòng riêng `user:<id>` đã có sẵn từ socketHandler.js.
+  // Milestone 2: nếu đang mở đúng course này thì tự làm mới danh sách bài tập khi có
+  // điểm mới, để điểm hiển thị ngay mà không cần F5. Toast hiển thị real-time cho
+  // người dùng dùng chung 1 component ở App.jsx (NotificationToastHost) nên ở đây
+  // không cần tự vẽ banner nữa.
   useEffect(() => {
     if (!socket) return;
     const handleGrade = (data) => {
-      setNotice(`📩 Bạn vừa được chấm điểm bài "${data.assignmentTitle}": ${data.score}/10`);
       if (data.courseId === courseId) loadAssignments();
-      setTimeout(() => setNotice(null), 6000);
     };
     socket.on('grade_posted', handleGrade);
     return () => socket.off('grade_posted', handleGrade);
@@ -214,10 +239,20 @@ export default function CourseDetailPage() {
       />
 
       <div className="flex-1 flex flex-col bg-cm-surface overflow-hidden">
-        {notice && (
-          <div className="bg-cm-accent text-white text-sm px-4 py-2 text-center">{notice}</div>
-        )}
-
+        {loadingCourse ? (
+          <div className="flex-1 flex items-center justify-center text-cm-muted text-sm">
+            Đang tải khoá học...
+          </div>
+        ) : notEnrolled ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <div className="text-4xl mb-3">🔒</div>
+            <p className="text-white font-semibold mb-1">Tài khoản chưa tham gia khoá học</p>
+            <p className="text-cm-muted text-sm max-w-sm">
+              Hãy liên hệ Instructor/TA của khoá học để được thêm vào, hoặc dùng mã mời riêng của khoá học này.
+            </p>
+          </div>
+        ) : (
+        <>
         {/* Header */}
         <div className="px-5 py-4 border-b border-cm-border">
           <div className="flex items-start justify-between gap-3">
@@ -255,7 +290,7 @@ export default function CourseDetailPage() {
           </div>
 
           <div className="flex gap-1 mt-4">
-            {TABS.map((t) => (
+            {TABS.filter((t) => !t.instructorOnly || canManage).map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
@@ -310,6 +345,10 @@ export default function CourseDetailPage() {
             </div>
           )}
 
+          {tab === 'gradebook' && canManage && (
+            <GradebookTable courseId={courseId} />
+          )}
+
           {tab === 'members' && (
             <CourseMembersPanel
               course={course}
@@ -321,6 +360,8 @@ export default function CourseDetailPage() {
             />
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { resolveFileUrl } from '../../config';
+import AttachmentPreview from '../common/AttachmentPreview';
 import StudentSubmissionPanel from './StudentSubmissionPanel';
 import GradingPanel from './GradingPanel';
 
@@ -52,14 +52,12 @@ export default function AssignmentList({ assignments, canManage, onEdit, onDelet
                   <p className="text-cm-text text-sm whitespace-pre-wrap leading-relaxed mb-2">{a.description}</p>
                 )}
                 {a.fileUrl && (
-                  <a
-                    href={resolveFileUrl(a.fileUrl)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-cm-accent text-xs hover:underline inline-block mb-2"
-                  >
-                    📎 {a.fileName || 'Tải đề bài'}
-                  </a>
+                  <AttachmentPreview
+                    fileUrl={a.fileUrl}
+                    fileName={a.fileName}
+                    fileType={a.fileType}
+                    className="mb-2"
+                  />
                 )}
 
                 {canManage && (

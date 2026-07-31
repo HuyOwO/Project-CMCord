@@ -8,6 +8,8 @@ import ChannelPage  from './pages/ChannelPage';
 import DMPage       from './pages/DMPage';
 import CoursesPage      from './pages/CoursesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
+import CourseRedirect   from './pages/CourseRedirect';
+import NotificationToastHost from './components/common/NotificationToastHost';
 import useAuth      from './hooks/useAuth';
 
 // Chặn route khi chưa đăng nhập
@@ -29,6 +31,7 @@ const AppRoutes = () => (
     {/* Milestone 2 – Learning System */}
     <Route path="/servers/:serverId/courses" element={<PrivateRoute><CoursesPage /></PrivateRoute>} />
     <Route path="/servers/:serverId/courses/:courseId" element={<PrivateRoute><CourseDetailPage /></PrivateRoute>} />
+    <Route path="/courses/:courseId" element={<PrivateRoute><CourseRedirect /></PrivateRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );
@@ -38,6 +41,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
+          <NotificationToastHost />
           <AppRoutes />
         </SocketProvider>
       </AuthProvider>

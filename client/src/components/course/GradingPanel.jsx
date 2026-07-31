@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { submissionService } from '../../services';
-import { resolveFileUrl } from '../../config';
+import AttachmentPreview from '../common/AttachmentPreview';
 
 // Panel chấm điểm dành cho instructor/TA: liệt kê TẤT CẢ bài nộp của assignment này,
 // mỗi hàng có thể mở ra để xem nội dung + chấm điểm/nhận xét.
@@ -58,6 +58,8 @@ function SubmissionRow({ submission, isOpen, onToggle, onGraded }) {
     try {
       await submissionService.grade(submission._id, { score: num, feedback });
       onGraded();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Lưu điểm thất bại, vui lòng thử lại.');
     } finally {
       setSaving(false);
     }
@@ -86,9 +88,12 @@ function SubmissionRow({ submission, isOpen, onToggle, onGraded }) {
           </p>
           {submission.content && <p className="text-cm-text text-sm whitespace-pre-wrap mb-1">{submission.content}</p>}
           {submission.fileUrl && (
-            <a href={resolveFileUrl(submission.fileUrl)} target="_blank" rel="noreferrer" className="text-cm-accent text-xs hover:underline block mb-2">
-              📎 {submission.fileName || 'File bài nộp'}
-            </a>
+            <AttachmentPreview
+              fileUrl={submission.fileUrl}
+              fileName={submission.fileName}
+              fileType={submission.fileType}
+              className="mb-2"
+            />
           )}
 
           <form onSubmit={handleGrade} className="space-y-2 mt-2 pt-2 border-t border-cm-border/60">

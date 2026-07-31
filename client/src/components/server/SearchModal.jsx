@@ -10,6 +10,32 @@ const TABS = [
   { key: 'members',  label: 'Thành viên' },
 ];
 
+const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i;
+const looksLikeImage = (fileType, fileName) => fileType?.startsWith('image/') || IMAGE_EXT_RE.test(fileName || '');
+
+// Icon 32x32: thumbnail thật nếu là ảnh, fallback về emoji 📎 nếu không phải ảnh
+// hoặc ảnh lỗi không tải được.
+function FileThumb({ fileUrl, fileName, fileType }) {
+  const [broken, setBroken] = useState(false);
+  const isImage = !broken && looksLikeImage(fileType, fileName);
+
+  return (
+    <span className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 overflow-hidden bg-cm-input">
+      {isImage ? (
+        <img
+          src={resolveFileUrl(fileUrl)}
+          alt={fileName || 'Ảnh đính kèm'}
+          loading="lazy"
+          onError={() => setBroken(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span className="text-lg">📎</span>
+      )}
+    </span>
+  );
+}
+
 const ROLE_LABEL = { owner: 'Chủ sở hữu', moderator: 'Moderator', member: 'Thành viên' };
 
 // Bôi vàng đoạn khớp với từ khoá — dựng bằng React node, không dùng
@@ -174,7 +200,7 @@ export default function SearchModal({ isOpen, onClose, server, onJumpToChannel, 
                   onClick={() => jump(m.channel)}
                   className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-cm-input cursor-pointer"
                 >
-                  <span className="text-lg flex-shrink-0">📎</span>
+                  <FileThumb fileUrl={m.fileUrl} fileName={m.fileName} fileType={m.fileType} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
                       <span className="text-white text-sm truncate">

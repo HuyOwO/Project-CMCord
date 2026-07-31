@@ -17,6 +17,7 @@ export default function AssignmentModal({ isOpen, onClose, onSave, assignment = 
   const [deadline, setDeadline] = useState('');
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const isEdit = !!assignment;
@@ -28,6 +29,7 @@ export default function AssignmentModal({ isOpen, onClose, onSave, assignment = 
       setDeadline(toDatetimeLocal(assignment?.deadline));
       setFile(null);
       setFileError('');
+      setSubmitError('');
     }
   }, [isOpen, assignment]);
 
@@ -55,9 +57,12 @@ export default function AssignmentModal({ isOpen, onClose, onSave, assignment = 
     e.preventDefault();
     if (!title.trim()) return;
     setLoading(true);
+    setSubmitError('');
     try {
       await onSave({ title: title.trim(), description, deadline: deadline || null }, file);
       handleClose();
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Lưu bài tập thất bại, vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -132,6 +137,7 @@ export default function AssignmentModal({ isOpen, onClose, onSave, assignment = 
             {loading ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
+        {submitError && <p className="text-red-400 text-xs text-right">{submitError}</p>}
       </form>
     </Modal>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { submissionService } from '../../services';
-import { resolveFileUrl } from '../../config';
+import AttachmentPreview from '../common/AttachmentPreview';
 import { formatFileSize, MAX_FILE_SIZE } from '../../utils/file';
 
 // Panel nộp bài dành cho student: hiện bài đã nộp (nếu có) + điểm/nhận xét nếu đã được chấm,
@@ -11,6 +11,7 @@ export default function StudentSubmissionPanel({ assignmentId }) {
   const [content, setContent] = useState('');
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -39,11 +40,14 @@ export default function StudentSubmissionPanel({ assignmentId }) {
     e.preventDefault();
     if (!content.trim() && !file) return;
     setSubmitting(true);
+    setSubmitError('');
     try {
       await submissionService.submit(assignmentId, content.trim(), file);
       setContent('');
       setFile(null);
       load();
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Nộp bài thất bại, vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -68,9 +72,7 @@ export default function StudentSubmissionPanel({ assignmentId }) {
           </div>
           {submission.content && <p className="text-cm-text text-sm whitespace-pre-wrap mb-1">{submission.content}</p>}
           {submission.fileUrl && (
-            <a href={resolveFileUrl(submission.fileUrl)} target="_blank" rel="noreferrer" className="text-cm-accent text-xs hover:underline">
-              📎 {submission.fileName || 'File đã nộp'}
-            </a>
+            <AttachmentPreview fileUrl={submission.fileUrl} fileName={submission.fileName} fileType={submission.fileType} />
           )}
           {submission.grade?.feedback && (
             <div className="mt-2 pt-2 border-t border-cm-border/60">
@@ -113,6 +115,7 @@ export default function StudentSubmissionPanel({ assignmentId }) {
           </button>
         </div>
         {fileError && <p className="text-red-400 text-xs">{fileError}</p>}
+        {submitError && <p className="text-red-400 text-xs">{submitError}</p>}
       </form>
     </div>
   );

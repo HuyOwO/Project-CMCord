@@ -4,11 +4,11 @@ const Course = require('../models/Course');
 const { getUploadedFileUrl } = require('../utils/fileUrl');
 const { getCourseRole, canManageCourse } = require('../utils/coursePermissions');
 
-// GET /api/assignments/:assignmentId/submissions
+// GET /api/assignments/:id/submissions
 // instructor/TA -> tất cả bài nộp của assignment này; student -> chỉ bài nộp của chính mình
 const getSubmissions = async (req, res) => {
   try {
-    const assignment = await Assignment.findById(req.params.assignmentId);
+    const assignment = await Assignment.findById(req.params.id);
     if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
 
     const course = await Course.findById(assignment.course);
@@ -29,10 +29,10 @@ const getSubmissions = async (req, res) => {
   }
 };
 
-// POST /api/assignments/:assignmentId/submissions  { content } + file tuỳ chọn -- student nộp hoặc nộp lại bài
+// POST /api/assignments/:id/submissions  { content } + file tuỳ chọn -- student nộp hoặc nộp lại bài
 const submitAssignment = async (req, res) => {
   try {
-    const assignment = await Assignment.findById(req.params.assignmentId);
+    const assignment = await Assignment.findById(req.params.id);
     if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
 
     const course = await Course.findById(assignment.course);
@@ -103,6 +103,7 @@ const gradeSubmission = async (req, res) => {
       assignmentId: assignment._id,
       assignmentTitle: assignment.title,
       courseId: assignment.course,
+      courseName: course?.name,
       score: submission.grade.score,
       feedback: submission.grade.feedback,
     });

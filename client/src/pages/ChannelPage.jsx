@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, channelService, serverService, dmService } from '../services';
-import { resolveFileUrl } from '../config';
+import AttachmentPreview from '../components/common/AttachmentPreview';
 import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth   from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
@@ -493,10 +493,7 @@ export default function ChannelPage() {
                     )}
 
                     {msg.fileUrl && (
-                      <a href={resolveFileUrl(msg.fileUrl)} target="_blank" rel="noreferrer"
-                        className="text-cm-accent text-xs hover:underline mt-1 block">
-                        📎 Tải file đính kèm
-                      </a>
+                      <AttachmentPreview fileUrl={msg.fileUrl} fileName={msg.fileName} fileType={msg.fileType} />
                     )}
                     {msg.reactions?.length > 0 && (
                       <div className="flex gap-1 mt-1">

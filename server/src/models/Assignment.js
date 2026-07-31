@@ -10,6 +10,9 @@ const assignmentSchema = new mongoose.Schema({
   fileType:    { type: String, default: null },
   fileName:    { type: String, default: null },
   createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  // Milestone 2: đánh dấu đã gửi nhắc deadline tự động cho assignment này chưa,
+  // tránh deadlineReminderJob.js gửi trùng thông báo mỗi lần chạy định kỳ.
+  remindersSent: { type: Boolean, default: false },
 }, { timestamps: true });
 
 assignmentSchema.index({ course: 1, deadline: 1 });

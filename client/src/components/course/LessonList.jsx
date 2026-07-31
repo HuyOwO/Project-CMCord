@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { resolveFileUrl } from '../../config';
+import AttachmentPreview from '../common/AttachmentPreview';
 
 // Danh sách bài học theo thứ tự (order). Instructor/TA có thêm nút sửa/xoá/di chuyển lên-xuống.
 // Dùng nút lên/xuống thay vì kéo-thả để đơn giản và chắc chắn hoạt động trên mọi thiết bị.
@@ -37,14 +37,12 @@ export default function LessonList({ lessons, canManage, onEdit, onDelete, onMov
                   </p>
                 )}
                 {lesson.fileUrl && (
-                  <a
-                    href={resolveFileUrl(lesson.fileUrl)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-cm-accent text-xs hover:underline inline-block mb-2"
-                  >
-                    📎 {lesson.fileName || 'Tải tài liệu'}
-                  </a>
+                  <AttachmentPreview
+                    fileUrl={lesson.fileUrl}
+                    fileName={lesson.fileName}
+                    fileType={lesson.fileType}
+                    className="mb-2"
+                  />
                 )}
 
                 {canManage && (

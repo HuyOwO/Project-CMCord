@@ -9,6 +9,7 @@ export default function LessonModal({ isOpen, onClose, onSave, lesson = null }) 
   const [content, setContent] = useState('');
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const isEdit = !!lesson;
@@ -19,6 +20,7 @@ export default function LessonModal({ isOpen, onClose, onSave, lesson = null }) 
       setContent(lesson?.content || '');
       setFile(null);
       setFileError('');
+      setSubmitError('');
     }
   }, [isOpen, lesson]);
 
@@ -45,9 +47,12 @@ export default function LessonModal({ isOpen, onClose, onSave, lesson = null }) 
     e.preventDefault();
     if (!title.trim()) return;
     setLoading(true);
+    setSubmitError('');
     try {
       await onSave({ title: title.trim(), content }, file);
       handleClose();
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Lưu bài học thất bại, vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -114,6 +119,7 @@ export default function LessonModal({ isOpen, onClose, onSave, lesson = null }) 
             {loading ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
+        {submitError && <p className="text-red-400 text-xs text-right">{submitError}</p>}
       </form>
     </Modal>
   );

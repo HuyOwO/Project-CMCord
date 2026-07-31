@@ -27,6 +27,12 @@ const localStorage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
+  // busboy (dùng bên trong multer) mặc định đọc tên file trong header multipart
+  // bằng latin1, khiến tên file tiếng Việt có dấu (UTF-8) bị hiển thị sai (mojibake,
+  // vd "Bài tập" -> "BẢ i táºp"). Diễn giải lại đúng bằng UTF-8 ngay từ đầu, trước khi
+  // filename này được lưu vào DB hoặc dùng để tạo file trên đĩa/Cloudinary.
+  file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
   const allowed = /jpeg|jpg|png|gif|pdf|doc|docx|xlsx|zip/;
   const ext = allowed.test(path.extname(file.originalname).toLowerCase());
   ext ? cb(null, true) : cb(new Error('File type not allowed'));
