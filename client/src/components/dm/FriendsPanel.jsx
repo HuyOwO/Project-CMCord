@@ -1,13 +1,19 @@
 import { useState } from 'react';
+import { useUserStatuses } from '../../hooks/useSocket';
+import { getEffectiveStatus } from '../../utils/status';
+import StatusDot from '../common/StatusDot';
 
 const TABS = [
-  { key: 'all',     label: 'Tất cả' },
+  { key: 'all', label: 'Tất cả' },
   { key: 'pending', label: 'Đang chờ' },
-  { key: 'add',     label: 'Thêm bạn bè' },
+  { key: 'add', label: 'Thêm bạn bè' },
 ];
 
 // Panel quản lý bạn bè: danh sách bạn, lời mời đến/đi, và form thêm bạn theo username.
 // Hiển thị làm nội dung chính của DMPage khi vào route /friends (thay cho khung chat).
+//
+// Milestone 3: chấm trạng thái dùng StatusDot (Có mặt/Đang chờ/Vắng mặt/Ngoại tuyến)
+// thay vì chỉ chấm xanh online/offline như trước.
 export default function FriendsPanel({
   friends,
   incomingRequests,
@@ -18,6 +24,7 @@ export default function FriendsPanel({
   onMessageUser,
   onlineUsers,
 }) {
+  const userStatuses = useUserStatuses();
   const [tab, setTab] = useState('all');
   const [username, setUsername] = useState('');
   const [status, setStatus] = useState(null); // { type: 'success' | 'error', message }
@@ -75,36 +82,41 @@ export default function FriendsPanel({
                 Chưa có ai trong danh sách bạn bè. Sang tab "Thêm bạn bè" để bắt đầu kết bạn.
               </p>
             )}
-            {friends.map((f) => (
-              <div key={f._id} className="flex items-center gap-3 px-2 py-2.5 rounded hover:bg-cm-input group">
-                <div className="relative flex-shrink-0">
-                  <div className="w-9 h-9 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold">
-                    {f.user.username[0].toUpperCase()}
+            {friends.map((f) => {
+              const effectiveStatus = getEffectiveStatus(
+                f.user._id,
+                userStatuses.get(f.user._id) ?? f.user.status,
+                onlineUsers
+              );
+              return (
+                <div key={f._id} className="flex items-center gap-3 px-2 py-2.5 rounded hover:bg-cm-input group">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold">
+                      {f.user.username[0].toUpperCase()}
+                    </div>
+                    <StatusDot status={effectiveStatus} borderClass="border-cm-surface" />
                   </div>
-                  {onlineUsers?.has(f.user._id) && (
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-cm-green border-2 border-cm-surface" />
-                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-white text-sm truncate">{f.user.username}</div>
+                    <div className="text-cm-muted text-xs">{STATUS_LABEL(effectiveStatus)}</div>
+                  </div>
+                  <button
+                    onClick={() => onMessageUser(f.user._id)}
+                    title="Nhắn tin"
+                    className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-cm-accent text-sm px-2 flex-shrink-0"
+                  >
+                    💬
+                  </button>
+                  <button
+                    onClick={() => { if (window.confirm(`Huỷ kết bạn với ${f.user.username}?`)) onRemove(f._id); }}
+                    title="Huỷ kết bạn"
+                    className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-red-400 text-sm px-2 flex-shrink-0"
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-white text-sm truncate">{f.user.username}</div>
-                  <div className="text-cm-muted text-xs">{onlineUsers?.has(f.user._id) ? 'Đang online' : 'Offline'}</div>
-                </div>
-                <button
-                  onClick={() => onMessageUser(f.user._id)}
-                  title="Nhắn tin"
-                  className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-cm-accent text-sm px-2 flex-shrink-0"
-                >
-                  💬
-                </button>
-                <button
-                  onClick={() => { if (window.confirm(`Huỷ kết bạn với ${f.user.username}?`)) onRemove(f._id); }}
-                  title="Huỷ kết bạn"
-                  className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-red-400 text-sm px-2 flex-shrink-0"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </>
         )}
 
@@ -184,3 +196,8 @@ export default function FriendsPanel({
     </div>
   );
 }
+
+const STATUS_LABEL = (status) => {
+  const labels = { online: 'Có mặt', idle: 'Đang chờ', away: 'Vắng mặt', offline: 'Offline' };
+  return labels[status] || 'Offline';
+};

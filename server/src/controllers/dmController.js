@@ -20,14 +20,15 @@ const shareServer = async (userIdA, userIdB) => {
 const getContacts = async (req, res) => {
   try {
     const servers = await ServerModel.find({ 'members.user': req.user._id })
-      .populate('members.user', 'username avatar');
+      // Milestone 3: kèm `status` để danh sách liên hệ có chấm trạng thái ngay khi tải trang.
+      .populate('members.user', 'username avatar status');
 
     const seen = new Map();
     servers.forEach((srv) => {
       srv.members.forEach((m) => {
         const u = m.user;
         if (u && !u._id.equals(req.user._id) && !seen.has(u._id.toString())) {
-          seen.set(u._id.toString(), { _id: u._id, username: u.username, avatar: u.avatar });
+          seen.set(u._id.toString(), { _id: u._id, username: u.username, avatar: u.avatar, status: u.status });
         }
       });
     });
@@ -35,12 +36,12 @@ const getContacts = async (req, res) => {
     const friendships = await Friendship.find({
       status: 'accepted',
       $or: [{ requester: req.user._id }, { recipient: req.user._id }],
-    }).populate('requester recipient', 'username avatar');
+    }).populate('requester recipient', 'username avatar status');
 
     friendships.forEach((f) => {
       const other = f.requester._id.equals(req.user._id) ? f.recipient : f.requester;
       if (!seen.has(other._id.toString())) {
-        seen.set(other._id.toString(), { _id: other._id, username: other.username, avatar: other.avatar });
+        seen.set(other._id.toString(), { _id: other._id, username: other.username, avatar: other.avatar, status: other.status });
       }
     });
 
@@ -54,7 +55,7 @@ const getContacts = async (req, res) => {
 const getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user._id })
-      .populate('participants', 'username avatar')
+      .populate('participants', 'username avatar status')
       .sort({ lastMessageAt: -1 });
 
     const withLastMessage = await Promise.all(
@@ -78,7 +79,7 @@ const getOrCreateConversation = async (req, res) => {
     if (userId === req.user._id.toString())
       return res.status(400).json({ success: false, message: 'Không thể tự nhắn tin cho chính mình' });
 
-    const targetUser = await User.findById(userId).select('username avatar');
+    const targetUser = await User.findById(userId).select('username avatar status');
     if (!targetUser) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
 
     const canDM = (await shareServer(req.user._id, userId)) || (await areFriends(req.user._id, userId));
@@ -87,11 +88,11 @@ const getOrCreateConversation = async (req, res) => {
 
     let conversation = await Conversation.findOne({
       participants: { $all: [req.user._id, userId], $size: 2 },
-    }).populate('participants', 'username avatar');
+    }).populate('participants', 'username avatar status');
 
     if (!conversation) {
       conversation = await Conversation.create({ participants: [req.user._id, userId] });
-      await conversation.populate('participants', 'username avatar');
+      await conversation.populate('participants', 'username avatar status');
     }
 
     res.json({ success: true, data: conversation });

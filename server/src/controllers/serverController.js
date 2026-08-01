@@ -38,7 +38,9 @@ const getServer = async (req, res) => {
   try {
     const server = await ServerModel.findById(req.params.id)
       .populate('owner', 'username avatar')
-      .populate('members.user', 'username avatar');
+      // Milestone 3: kèm `status` để MemberListPanel có chấm trạng thái ngay khi tải trang,
+      // không cần đợi sự kiện socket 'user_status_changed' đầu tiên.
+      .populate('members.user', 'username avatar status');
     if (!server) return res.status(404).json({ success: false, message: 'Server not found' });
 
     const isMember = server.members.some(m => m.user._id.equals(req.user._id));
@@ -177,7 +179,7 @@ const updateServer = async (req, res) => {
 
     await server.save();
     await server.populate('owner', 'username avatar');
-    await server.populate('members.user', 'username avatar');
+    await server.populate('members.user', 'username avatar status');
     res.json({ success: true, data: server });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -197,7 +199,7 @@ const updateNickname = async (req, res) => {
     member.nickname = nickname || null; // rỗng -> xoá biệt danh, dùng lại username gốc
     await server.save();
     await server.populate('owner', 'username avatar');
-    await server.populate('members.user', 'username avatar');
+    await server.populate('members.user', 'username avatar status');
     res.json({ success: true, data: server });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

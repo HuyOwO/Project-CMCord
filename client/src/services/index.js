@@ -18,9 +18,25 @@ export const authService = {
     return data;
   },
 };
+
+// Milestone 3 (UI cải tiến): mở rộng userService để hỗ trợ trang Hồ sơ cá nhân
+// (ProfileModal.jsx) -- đổi username/trạng thái, đổi email (cần mật khẩu), upload avatar.
 export const userService = {
-  updateProfile: async ({ username, avatar }) => {
-    const { data } = await api.patch('/users/me', { username, avatar });
+  // { username, status } -- không cần mật khẩu, giữ tương thích `avatar` cũ nếu còn nơi dùng.
+  updateProfile: async ({ username, status, avatar }) => {
+    const { data } = await api.patch('/users/me', { username, status, avatar });
+    return data.data;
+  },
+  // Bắt buộc mật khẩu hiện tại vì email là thông tin nhạy cảm (dùng để đăng nhập/khôi phục).
+  updateEmail: async (newEmail, password) => {
+    const { data } = await api.patch('/users/me/email', { newEmail, password });
+    return data.data;
+  },
+  // Upload file ảnh trực tiếp (multipart), khác với updateProfile ở trên vốn chỉ nhận JSON.
+  uploadAvatar: async (file) => {
+    const form = new FormData();
+    form.append('avatar', file);
+    const { data } = await api.post('/users/me/avatar', form);
     return data.data;
   },
 };

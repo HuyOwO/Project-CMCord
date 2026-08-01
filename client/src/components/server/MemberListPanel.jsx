@@ -1,11 +1,20 @@
 import { getRole, canModerateMember } from '../../utils/permissions';
+import { useOnlineUsers, useUserStatuses } from '../../hooks/useSocket';
+import { getEffectiveStatus } from '../../utils/status';
+import StatusDot from '../common/StatusDot';
 
 const ROLE_LABEL = { owner: 'Chủ sở hữu', moderator: 'Moderator', member: 'Thành viên' };
 
 // Panel danh sách thành viên (giống Discord), gom nhóm theo role.
 // Các nút thăng/hạ/kick/ban chỉ hiện khi actor (currentUserId) có đủ quyền với từng người,
 // dựa theo utils/permissions.js — không tự ý hiện nút rồi mới báo lỗi.
+//
+// Milestone 3: thêm chấm trạng thái (Có mặt/Đang chờ/Vắng mặt/Ngoại tuyến) trên avatar mỗi
+// thành viên, tự lấy trực tiếp qua hook socket thay vì cần prop từ trang cha.
 export default function MemberListPanel({ server, currentUserId, onPromote, onDemote, onKick, onBan, onMessage }) {
+  const onlineUsers = useOnlineUsers();
+  const userStatuses = useUserStatuses();
+
   if (!server) return null;
 
   const actorRole = getRole(server, currentUserId);
@@ -38,6 +47,11 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
               const canModerate = !isSelf && canModerateMember(actorRole, m.role);
               const canPromote = !isSelf && actorRole === 'owner' && m.role === 'member';
               const canDemote = !isSelf && actorRole === 'owner' && m.role === 'moderator';
+              const effectiveStatus = getEffectiveStatus(
+                m.uid,
+                userStatuses.get(m.uid) ?? m.user?.status,
+                onlineUsers
+              );
 
               return (
                 <div
@@ -45,8 +59,11 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                   className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-cm-input group"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {(m.nickname || m.user?.username)?.[0]?.toUpperCase()}
+                    <div className="relative flex-shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold">
+                        {(m.nickname || m.user?.username)?.[0]?.toUpperCase()}
+                      </div>
+                      <StatusDot status={effectiveStatus} borderClass="border-cm-sidebar" />
                     </div>
                     <div className="min-w-0">
                       <div className="text-cm-text text-sm truncate">

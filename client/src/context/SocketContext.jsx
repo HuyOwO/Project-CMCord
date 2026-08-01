@@ -8,7 +8,13 @@ export const SocketContext = createContext(null);
 export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
   const [socket, setSocket] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState(new Set());  
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
+  // Milestone 3: trạng thái thủ công (Có mặt/Đang chờ/Vắng mặt) của từng user, cập nhật
+  // real-time qua sự kiện 'user_status_changed' (bắn từ userController.js khi ai đó đổi
+  // trạng thái trong ProfileModal). Không cần tải sẵn toàn bộ map này lúc kết nối vì mỗi nơi
+  // hiển thị (member list, friend list, DM list...) đã có sẵn field `status` kèm theo trong
+  // dữ liệu populate ban đầu từ server -- map này chỉ dùng để cập nhật LIVE sau đó.
+  const [userStatuses, setUserStatuses] = useState(new Map());
 
   // Kết nối lại socket mỗi khi trạng thái đăng nhập (user) thay đổi,
   // thay vì chỉ 1 lần lúc app khởi động (trước đây nếu chưa login lúc mount
@@ -41,12 +47,15 @@ export const SocketProvider = ({ children }) => {
         return next;
       })
     );
+    newSocket.on('user_status_changed', ({ userId, status }) =>
+      setUserStatuses(prev => new Map(prev).set(userId, status))
+    );
 
     return () => newSocket.disconnect();
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, onlineUsers }}>
+    <SocketContext.Provider value={{ socket, onlineUsers, userStatuses }}>
       {children}
     </SocketContext.Provider>
   );

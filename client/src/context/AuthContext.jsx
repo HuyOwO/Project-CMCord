@@ -38,8 +38,14 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Cập nhật user hiện tại trong context (vd sau khi lưu hồ sơ/avatar/trạng thái/email
+  // trong ProfileModal), tránh phải F5 lại trang mới thấy thay đổi.
+  const updateUser = (patch) => {
+    setUser((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

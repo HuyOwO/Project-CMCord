@@ -19,7 +19,8 @@ const getAll = async (req, res) => {
   try {
     const relations = await Friendship.find({
       $or: [{ requester: req.user._id }, { recipient: req.user._id }],
-    }).populate('requester recipient', 'username avatar');
+      // Milestone 3: kèm `status` để FriendsPanel có chấm trạng thái ngay khi tải trang.
+    }).populate('requester recipient', 'username avatar status');
 
     const friends = [];
     const incomingRequests = [];
@@ -50,7 +51,7 @@ const sendRequest = async (req, res) => {
     const username = req.body.username?.trim();
     if (!username) return res.status(400).json({ success: false, message: 'Thiếu username' });
 
-    const target = await User.findOne({ username }).select('username avatar');
+    const target = await User.findOne({ username }).select('username avatar status');
     if (!target) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng này' });
     if (target._id.equals(req.user._id))
       return res.status(400).json({ success: false, message: 'Không thể tự kết bạn với chính mình' });
@@ -69,11 +70,11 @@ const sendRequest = async (req, res) => {
     }
 
     const friendship = await Friendship.create({ requester: req.user._id, recipient: target._id });
-    await friendship.populate('requester recipient', 'username avatar');
+    await friendship.populate('requester recipient', 'username avatar status');
 
     req.app.get('io')?.to(`user:${target._id}`).emit('friend_request_received', {
       _id: friendship._id,
-      user: { _id: req.user._id, username: req.user.username, avatar: req.user.avatar },
+      user: { _id: req.user._id, username: req.user.username, avatar: req.user.avatar, status: req.user.status },
       createdAt: friendship.createdAt,
     });
 
@@ -86,7 +87,7 @@ const sendRequest = async (req, res) => {
 // POST /api/friends/requests/:id/accept -- chỉ recipient được chấp nhận
 const acceptRequest = async (req, res) => {
   try {
-    const friendship = await Friendship.findById(req.params.id).populate('requester recipient', 'username avatar');
+    const friendship = await Friendship.findById(req.params.id).populate('requester recipient', 'username avatar status');
     if (!friendship) return res.status(404).json({ success: false, message: 'Không tìm thấy lời mời' });
     if (!friendship.recipient._id.equals(req.user._id))
       return res.status(403).json({ success: false, message: 'Không có quyền chấp nhận lời mời này' });
@@ -98,7 +99,12 @@ const acceptRequest = async (req, res) => {
 
     req.app.get('io')?.to(`user:${friendship.requester._id}`).emit('friend_request_accepted', {
       _id: friendship._id,
-      user: { _id: friendship.recipient._id, username: friendship.recipient.username, avatar: friendship.recipient.avatar },
+      user: {
+        _id: friendship.recipient._id,
+        username: friendship.recipient.username,
+        avatar: friendship.recipient.avatar,
+        status: friendship.recipient.status,
+      },
       since: friendship.updatedAt,
     });
 
