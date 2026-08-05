@@ -191,21 +191,21 @@ nằm trong thư mục `server/tests/` và `client/src/utils/__tests__/`).
 
 ### 6.1 EP-01 – Xác thực người dùng
 
-| Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
-|---|---|---|---|---|---|
-| MT-01 | Đăng ký tài khoản mới | Vào `/register`, điền đủ thông tin hợp lệ, submit | Tạo tài khoản, tự đăng nhập, chuyển về `/` | | |
-| MT-02 | Đăng ký với email đã tồn tại | Đăng ký lại bằng email đã dùng | Hiện lỗi rõ ràng, không tạo tài khoản trùng | | |
-| MT-03 | Đăng nhập sai mật khẩu | Nhập đúng email, sai mật khẩu | Hiện lỗi, không vào được app | | |
-| MT-04 | Đăng xuất | Bấm "Đăng xuất" ở UserPanel | Về `/login`, token bị xoá khỏi localStorage | | |
+| Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế |
+|---|---|---|---|---|
+| MT-01 | Đăng ký tài khoản mới | Vào `/register`, điền đủ thông tin hợp lệ, submit | Tạo tài khoản, tự đăng nhập, chuyển về `/` | ✅ Đúng|
+| MT-02 | Đăng ký với email đã tồn tại | Đăng ký lại bằng email đã dùng | Hiện lỗi rõ ràng, không tạo tài khoản trùng | ✅ Đúng |
+| MT-03 | Đăng nhập sai mật khẩu | Nhập đúng email, sai mật khẩu | Hiện lỗi, không vào được app | ✅Đúng | 
+| MT-04 | Đăng xuất | Bấm "Đăng xuất" ở UserPanel | Về `/login`, token bị xoá khỏi localStorage | ✅Đúng |
 
 ### 6.2 EP-02/EP-03 – Server & Channel
 
-| Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
+| Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế |
 |---|---|---|---|---|---|
-| MT-05 | Tạo server mới | Bấm "+", nhập tên, tạo | Server mới xuất hiện, tự có channel `#general` | | |
-| MT-06 | Mời & tham gia server bằng mã mời | Copy mã mời, dùng tài khoản khác join | Tài khoản mới xuất hiện trong danh sách thành viên | | |
-| MT-07 | Tạo/đổi tên/xoá channel (chỉ owner) | Thử với tài khoản member | Không thấy nút tạo/sửa/xoá channel | | |
-| MT-08 | Kick/Ban thành viên đúng phân quyền | Moderator thử ban 1 moderator khác | Bị chặn (nút không hiện, theo PERM-04 đã test tự động) | | |
+| MT-05 | Tạo server mới | Bấm "+", nhập tên, tạo | Server mới xuất hiện, tự có channel `#general` | ✅Đúng |
+| MT-06 | Mời & tham gia server bằng mã mời | Copy mã mời, dùng tài khoản khác join | Tài khoản mới xuất hiện trong danh sách thành viên |✅Đúng|
+| MT-07 | Tạo/đổi tên/xoá channel (chỉ owner) | Thử với tài khoản member | Không thấy nút tạo/sửa/xoá channel |✅Đúng|
+| MT-08 | Kick/Ban thành viên đúng phân quyền | Moderator thử ban 1 moderator khác | Bị chặn (nút không hiện, theo PERM-04 đã test tự động) |✅Đúng|
 
 ### 6.3 EP-04/EP-05 – Nhắn tin & chia sẻ file
 
