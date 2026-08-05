@@ -410,18 +410,22 @@ export default function ChannelPage() {
             <span className="text-cm-muted text-lg">#</span>
             <span className="text-white font-semibold">{currentChannel?.name}</span>
           </div>
+          {/* Icon tương tác ở header phóng to (text-base, padding rộng hơn, hover có nền)
+              để dễ bấm hơn, đặc biệt trên màn hình cảm ứng. */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowSearch(true)}
               title="Tìm kiếm (Ctrl+K)"
-              className="text-sm px-2 py-1 rounded text-cm-muted hover:text-white"
+              className="text-base px-2.5 py-1.5 rounded-lg text-cm-muted hover:text-white hover:bg-cm-input transition-colors"
             >
               🔍
             </button>
             <button
               onClick={() => setShowMembers(v => !v)}
               title="Danh sách thành viên"
-              className={`text-sm px-2 py-1 rounded ${showMembers ? 'text-white bg-cm-input' : 'text-cm-muted hover:text-white'}`}
+              className={`text-base px-2.5 py-1.5 rounded-lg transition-colors ${
+                showMembers ? 'text-white bg-cm-input' : 'text-cm-muted hover:text-white hover:bg-cm-input'
+              }`}
             >
               👥 {server?.members?.length ?? ''}
             </button>
@@ -495,14 +499,15 @@ export default function ChannelPage() {
                     {msg.fileUrl && (
                       <AttachmentPreview fileUrl={msg.fileUrl} fileName={msg.fileName} fileType={msg.fileType} />
                     )}
+                    {/* Reaction chips phóng to (text-sm, padding rộng hơn) để dễ bấm lại/gỡ react hơn */}
                     {msg.reactions?.length > 0 && (
-                      <div className="flex gap-1 mt-1">
+                      <div className="flex gap-1.5 mt-1.5">
                         {msg.reactions.map(r => (
                           <button
                             key={r.emoji}
                             onClick={() => handleReact(msg._id, r.emoji)}
-                            className={`text-xs px-1.5 py-0.5 rounded-full border ${
-                              r.users.includes(user?._id) ? 'border-cm-accent bg-cm-accent/10' : 'border-cm-border'
+                            className={`text-sm px-2 py-1 rounded-full border transition-colors ${
+                              r.users.includes(user?._id) ? 'border-cm-accent bg-cm-accent/10' : 'border-cm-border hover:border-cm-muted'
                             }`}
                           >
                             {r.emoji} {r.users.length}
@@ -512,25 +517,31 @@ export default function ChannelPage() {
                     )}
                   </div>
                   {editingMessageId !== msg._id && (
-                    <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 flex-shrink-0 self-start">
-                    <button
+                    // Toolbar hành động khi hover tin nhắn: phóng to icon (text-base) + thêm
+                    // padding/nền khi hover để vùng bấm rộng hơn hẳn, dễ trúng hơn trên
+                    // màn hình nhỏ hoặc dùng chuột không chính xác. Gói trong khung nổi
+                    // (nền + viền + shadow) giống thanh công cụ của Discord cho dễ nhận biết.
+                    <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 flex-shrink-0 self-start bg-cm-bg border border-cm-border rounded-lg p-0.5 shadow-md -mt-1">
+                      <button
                         onClick={() => setReplyingTo(msg)}
                         title="Trả lời"
-                        className="text-cm-muted hover:text-white text-xs"
+                        className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
                       >
                         ↩️
                       </button>
                       <button
                         onClick={() => handleReact(msg._id)}
                         title="Thả cảm xúc"
-                        className="text-cm-muted hover:text-white text-xs"
+                        className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
                       >
                         😀
                       </button>
                       <button
                         onClick={() => handleTogglePin(msg._id)}
                         title={msg.isPinned ? 'Bỏ ghim' : 'Ghim tin nhắn'}
-                        className={`text-xs ${msg.isPinned ? 'text-cm-accent' : 'text-cm-muted hover:text-white'}`}
+                        className={`text-base p-1.5 rounded transition-colors ${
+                          msg.isPinned ? 'text-cm-accent bg-cm-accent/10' : 'text-cm-muted hover:text-white hover:bg-cm-input'
+                        }`}
                       >
                         📌
                       </button>
@@ -538,7 +549,7 @@ export default function ChannelPage() {
                         <button
                           onClick={() => startEditMessage(msg)}
                           title="Sửa tin nhắn"
-                          className="text-cm-muted hover:text-white text-xs"
+                          className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
                         >
                           ✏️
                         </button>
@@ -547,7 +558,7 @@ export default function ChannelPage() {
                         <button
                           onClick={() => handleDeleteMessage(msg._id)}
                           title="Xoá tin nhắn"
-                          className="text-cm-muted hover:text-red-500 text-xs"
+                          className="text-cm-muted hover:text-red-500 hover:bg-red-500/10 text-base p-1.5 rounded transition-colors"
                         >
                           🗑
                         </button>
@@ -611,6 +622,7 @@ export default function ChannelPage() {
         {fileError && <p className="mx-4 mb-1 text-red-400 text-xs">{fileError}</p>}
 
         <form onSubmit={sendMessage} className="px-4 pb-4">
+          {/* Icon đính kèm/gửi phóng to (text-xl) + bo tròn nền khi hover cho vùng bấm rộng hơn */}
           <div className="bg-cm-input rounded-lg flex items-center px-2 gap-1">
             <input
               ref={fileInputRef}
@@ -622,7 +634,7 @@ export default function ChannelPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               title="Đính kèm file (tối đa 8MB)"
-              className="text-cm-muted hover:text-white text-lg px-2 py-3 flex-shrink-0"
+              className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-3 rounded-full flex-shrink-0 transition-colors"
             >
               📎
             </button>
@@ -633,7 +645,11 @@ export default function ChannelPage() {
               placeholder={`Nhắn tin #${currentChannel?.name || '...'}`}
               className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted min-w-0"
             />
-            <button type="submit" className="text-cm-muted hover:text-white transition-colors px-2 flex-shrink-0">
+            <button
+              type="submit"
+              title="Gửi"
+              className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-2 rounded-full transition-colors flex-shrink-0"
+            >
               ➤
             </button>
           </div>

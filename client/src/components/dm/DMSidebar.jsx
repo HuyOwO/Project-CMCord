@@ -16,8 +16,8 @@ const previewText = (lastMessage) => {
 // Sidebar 240px cho trang DM: danh sách hội thoại + nút tạo hội thoại mới + UserPanel.
 // Cùng bố cục với ChannelSidebar để giao diện nhất quán khi chuyển qua lại.
 //
-// Milestone 3: chấm trạng thái dùng StatusDot (Có mặt/Đang chờ/Vắng mặt/Ngoại tuyến)
-// thay vì chỉ chấm xanh online/offline như trước.
+// Milestone 3: chấm trạng thái dùng StatusDot; nút "+" nhắn tin mới phóng to (text-xl,
+// khung tròn 28px) + nền khi hover cho vùng bấm rõ ràng, dễ trúng hơn.
 export default function DMSidebar({
   conversations,
   activeConversationId,
@@ -39,7 +39,7 @@ export default function DMSidebar({
         <button
           onClick={onNewMessageClick}
           title="Nhắn tin mới"
-          className="text-cm-muted hover:text-white text-lg leading-none"
+          className="text-cm-muted hover:text-white hover:bg-cm-input text-xl leading-none w-7 h-7 flex items-center justify-center rounded-full transition-colors"
         >
           +
         </button>

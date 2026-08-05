@@ -9,8 +9,9 @@ const ROLE_LABEL = { owner: 'Chủ sở hữu', moderator: 'Moderator', member: 
 // Các nút thăng/hạ/kick/ban chỉ hiện khi actor (currentUserId) có đủ quyền với từng người,
 // dựa theo utils/permissions.js — không tự ý hiện nút rồi mới báo lỗi.
 //
-// Milestone 3: thêm chấm trạng thái (Có mặt/Đang chờ/Vắng mặt/Ngoại tuyến) trên avatar mỗi
-// thành viên, tự lấy trực tiếp qua hook socket thay vì cần prop từ trang cha.
+// Milestone 3: chấm trạng thái trên avatar mỗi thành viên; các icon hành động khi hover
+// (💬 nhắn tin, ↑ thăng, ↓ hạ, ⏏ kick, ⛔ ban) được phóng to (text-base) + thêm nền tròn
+// khi hover để vùng bấm rộng hơn, dễ trúng hơn.
 export default function MemberListPanel({ server, currentUserId, onPromote, onDemote, onKick, onBan, onMessage }) {
   const onlineUsers = useOnlineUsers();
   const userStatuses = useUserStatuses();
@@ -77,12 +78,12 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                   </div>
 
                   {(canPromote || canDemote || canModerate || (!isSelf && onMessage)) && (
-                    <div className="hidden group-hover:flex items-center gap-1.5 flex-shrink-0">
+                    <div className="hidden group-hover:flex items-center gap-0.5 flex-shrink-0">
                       {!isSelf && onMessage && (
                         <button
                           onClick={() => onMessage(m.uid)}
                           title="Nhắn tin"
-                          className="text-cm-muted hover:text-cm-accent text-xs"
+                          className="text-cm-muted hover:text-cm-accent hover:bg-cm-bg text-base p-1 rounded-full transition-colors"
                         >
                           💬
                         </button>
@@ -91,7 +92,7 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                         <button
                           onClick={() => onPromote(m.uid)}
                           title="Thăng làm Moderator"
-                          className="text-cm-muted hover:text-cm-green text-xs"
+                          className="text-cm-muted hover:text-cm-green hover:bg-cm-bg text-base p-1 rounded-full transition-colors"
                         >
                           ↑
                         </button>
@@ -100,7 +101,7 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                         <button
                           onClick={() => onDemote(m.uid)}
                           title="Hạ xuống Thành viên"
-                          className="text-cm-muted hover:text-yellow-400 text-xs"
+                          className="text-cm-muted hover:text-yellow-400 hover:bg-cm-bg text-base p-1 rounded-full transition-colors"
                         >
                           ↓
                         </button>
@@ -110,14 +111,14 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                           <button
                             onClick={() => onKick(m.uid)}
                             title="Kick khỏi server"
-                            className="text-cm-muted hover:text-orange-400 text-xs"
+                            className="text-cm-muted hover:text-orange-400 hover:bg-cm-bg text-base p-1 rounded-full transition-colors"
                           >
                             ⏏
                           </button>
                           <button
                             onClick={() => onBan(m.uid)}
                             title="Ban khỏi server"
-                            className="text-cm-muted hover:text-red-500 text-xs"
+                            className="text-cm-muted hover:text-red-500 hover:bg-cm-bg text-base p-1 rounded-full transition-colors"
                           >
                             ⛔
                           </button>

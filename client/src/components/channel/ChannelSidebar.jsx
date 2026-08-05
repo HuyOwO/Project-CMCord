@@ -7,6 +7,9 @@ import UserPanel from '../layout/UserPanel';
 //
 // Milestone 2 (Learning System): thêm mục "🎓 Khóa học" ngay trên danh sách
 // channel, dẫn sang không gian học tập (Course) của server này.
+//
+// Milestone 3 (UI cải tiến): icon quản lý channel (⋮) phóng to (text-lg) + thêm nền
+// tròn khi hover cho vùng bấm rộng hơn, dễ trúng hơn so với trước.
 export default function ChannelSidebar({
   server,
   channels,
@@ -107,7 +110,7 @@ export default function ChannelSidebar({
               <button
                 onClick={onCreateChannelClick}
                 title="Tạo channel mới"
-                className="text-cm-muted hover:text-white text-lg leading-none"
+                className="text-cm-muted hover:text-white hover:bg-cm-input text-lg leading-none w-6 h-6 flex items-center justify-center rounded-full transition-colors"
               >
                 +
               </button>
@@ -119,7 +122,7 @@ export default function ChannelSidebar({
           <div key={ch._id} className="relative group">
             <button
               onClick={() => onSelectChannel(ch)}
-              className={`w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-1.5 pr-7 ${
+              className={`w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-1.5 pr-8 ${
                 ch._id === activeChannelId
                   ? 'bg-cm-input text-white'
                   : 'text-cm-muted hover:bg-cm-input hover:text-cm-text'
@@ -135,7 +138,7 @@ export default function ChannelSidebar({
                   setOpenMenuId(openMenuId === ch._id ? null : ch._id);
                 }}
                 title="Quản lý channel"
-                className="hidden group-hover:block absolute right-1 top-1/2 -translate-y-1/2 text-cm-muted hover:text-white px-1"
+                className="hidden group-hover:flex items-center justify-center absolute right-1 top-1/2 -translate-y-1/2 text-cm-muted hover:text-white hover:bg-cm-bg text-lg w-6 h-6 rounded-full transition-colors"
               >
                 ⋮
               </button>
