@@ -203,7 +203,7 @@ nằm trong thư mục `server/tests/` và `client/src/utils/__tests__/`).
 | Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế |
 |---|---|---|---|---|---|
 | MT-05 | Tạo server mới | Bấm "+", nhập tên, tạo | Server mới xuất hiện, tự có channel `#general` | ✅Đúng |
-| MT-06 | Mời & tham gia server bằng mã mời | Copy mã mời, dùng tài khoản khác join | Tài khoản mới xuất hiện trong danh sách thành viên |✅Đúng|
+| MT-06 | Mời & tham gia server bằng mã mời | Copy mã mời, dùng tài khoản khác join | Tài khoản mới xuất hiện trong danh sách thành viên | ✅Đúng|
 | MT-07 | Tạo/đổi tên/xoá channel (chỉ owner) | Thử với tài khoản member | Không thấy nút tạo/sửa/xoá channel |✅Đúng|
 | MT-08 | Kick/Ban thành viên đúng phân quyền | Moderator thử ban 1 moderator khác | Bị chặn (nút không hiện, theo PERM-04 đã test tự động) |✅Đúng|
 
@@ -211,39 +211,39 @@ nằm trong thư mục `server/tests/` và `client/src/utils/__tests__/`).
 
 | Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
 |---|---|---|---|---|---|
-| MT-09 | Gửi/nhận tin nhắn real-time giữa 2 tab trình duyệt | Mở 2 tab, cùng vào 1 channel, gửi từ tab A | Tab B nhận tin ngay không cần F5 | | |
-| MT-10 | Upload file tên tiếng Việt có dấu (*) | Upload file "Báo cáo dự án.docx" | Tên file hiển thị đúng dấu, không bị mojibake | | Pass (đã sửa, xem BUG-04) |
-| MT-11 | Upload file vượt 8MB | Chọn file 9MB | Bị chặn phía client trước khi gửi lên server | | |
-| MT-12 | @mention thành viên | Gõ `@` giữa chat | Hiện gợi ý đúng tên thành viên bắt đầu bằng ký tự đã gõ | | |
-| MT-13 | Reply, Pin, React, Sửa, Xoá tin nhắn | Hover tin nhắn, thử từng icon (đã phóng to icon gần đây) | Từng hành động hoạt động đúng, icon dễ bấm hơn bản cũ | | |
+| MT-09 | Gửi/nhận tin nhắn real-time giữa 2 tab trình duyệt | Mở 2 tab, cùng vào 1 channel, gửi từ tab A | Tab B nhận tin ngay không cần F5 |✅Đúng| |
+| MT-10 | Upload file tên tiếng Việt có dấu | Upload file "Báo cáo dự án.docx" | Tên file hiển thị đúng dấu, không bị mojibake | ❌Lỗi | Pass (đã sửa, xem BUG-04) |
+| MT-11 | Upload file vượt 8MB | Chọn file 9MB | Bị chặn phía client trước khi gửi lên server | ✅Đúng | |
+| MT-12 | @mention thành viên | Gõ `@` giữa chat | Hiện gợi ý đúng tên thành viên bắt đầu bằng ký tự đã gõ | ✅Đúng | |
+| MT-13 | Reply, Pin, React, Sửa, Xoá tin nhắn | Hover tin nhắn, thử từng icon (đã phóng to icon gần đây) | Từng hành động hoạt động đúng, icon dễ bấm hơn bản cũ | ✅Đúng | |
 
 ### 6.4 EP-09 – Tin nhắn riêng (DM) & Bạn bè
 
 | Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
 |---|---|---|---|---|---|
-| MT-14 | Gửi lời mời kết bạn theo username | Vào tab "Thêm bạn bè", nhập đúng username | Người nhận thấy lời mời real-time (không cần F5) | | |
-| MT-15 | Nhắn tin với người KHÔNG chung server và CHƯA là bạn bè | Thử `dmService.getOrCreate` với người lạ | Bị chặn 403 | | |
-| MT-16 | Chấm trạng thái online/idle/away hiển thị đúng ở DMSidebar & FriendsPanel | Đổi trạng thái ở tài khoản A, xem tài khoản B | Chấm màu cập nhật real-time không cần F5 | | |
+| MT-14 | Gửi lời mời kết bạn theo username | Vào tab "Thêm bạn bè", nhập đúng username | Người nhận thấy lời mời real-time (không cần F5) | ✅Đúng | |
+| MT-15 | Nhắn tin với người KHÔNG chung server và CHƯA là bạn bè | Thử `dmService.getOrCreate` với người lạ | Bị chặn 403 | ✅Đúng | |
+| MT-16 | Chấm trạng thái online/idle/away hiển thị đúng ở DMSidebar & FriendsPanel | Đổi trạng thái ở tài khoản A, xem tài khoản B | Chấm màu cập nhật real-time không cần F5 | ✅Đúng | |
 
 ### 6.5 EP-10 – Learning System (Course/Lesson/Assignment/Submission)
 
 | Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
 |---|---|---|---|---|---|
-| MT-17 | Chuyển sang course mà tài khoản CHƯA enroll (*) | Đổi URL sang `courseId` chưa tham gia | Hiện thông báo "chưa tham gia", không kẹt state của course cũ | | Pass (đã sửa, xem BUG-01) |
-| MT-18 | Sinh viên nộp bài không nhập gì (rỗng) | Bấm "Nộp bài" khi chưa nhập nội dung/file | Nút bị disable hoặc hiện lỗi rõ ràng, KHÔNG âm thầm fail (*) | | Pass (đã sửa, xem BUG-02) |
-| MT-19 | Chấm điểm — route param đúng assignment (*) | Instructor chấm 1 bài nộp cụ thể | Điểm được lưu đúng bài nộp đã chọn, không bị lệch | | Pass (đã sửa, xem BUG-03) |
-| MT-20 | Sinh viên nhận toast real-time khi có điểm mới | Instructor chấm điểm, xem màn hình sinh viên | Toast "Có điểm mới" hiện ngay dù đang ở trang khác | | |
-| MT-21 | Nhắc deadline tự động trong 24h | Tạo assignment deadline < 24h tới, đợi job chạy (hoặc gọi `checkDeadlines` thủ công) | Sinh viên chưa nộp bài nhận toast nhắc hạn | | |
+| MT-17 | Chuyển sang course mà tài khoản CHƯA enroll (*) | Đổi URL sang `courseId` chưa tham gia | Hiện thông báo "chưa tham gia", không kẹt state của course cũ |  ❌Lỗi  | Pass (đã sửa, xem BUG-01) |
+| MT-18 | Sinh viên nộp bài không nhập gì (rỗng) | Bấm "Nộp bài" khi chưa nhập nội dung/file | Nút bị disable hoặc hiện lỗi rõ ràng, KHÔNG âm thầm fail (*) |  ❌Lỗi  | Pass (đã sửa, xem BUG-02) |
+| MT-19 | Chấm điểm — route param đúng assignment (*) | Instructor chấm 1 bài nộp cụ thể | Điểm được lưu đúng bài nộp đã chọn, không bị lệch |  ❌Lỗi  | Pass (đã sửa, xem BUG-03) |
+| MT-20 | Sinh viên nhận toast real-time khi có điểm mới | Instructor chấm điểm, xem màn hình sinh viên | Toast "Có điểm mới" hiện ngay dù đang ở trang khác | ✅Đúng  | |
+| MT-21 | Nhắc deadline tự động trong 24h | Tạo assignment deadline < 24h tới, đợi job chạy (hoặc gọi `checkDeadlines` thủ công) | Sinh viên chưa nộp bài nhận toast nhắc hạn |✅Đúng | |
 
 ### 6.6 Hồ sơ người dùng & UI (bổ sung gần nhất)
 
 | Test ID | Chức năng | Các bước | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
 |---|---|---|---|---|---|
-| MT-22 | Đổi username | Mở ProfileModal, đổi tên, lưu | Tên mới hiển thị ngay khắp app không cần F5 | | |
-| MT-23 | Đổi email không nhập mật khẩu | Bỏ trống ô mật khẩu, bấm "Đổi email" | Nút bị disable / bị chặn phía server (400) | | |
-| MT-24 | Đổi email sai mật khẩu hiện tại | Nhập sai mật khẩu | HTTP 400 "Mật khẩu hiện tại không đúng", email KHÔNG đổi | | |
-| MT-25 | Upload avatar > 8MB | Chọn ảnh 9MB | Bị chặn phía client trước khi gửi lên server | | |
-| MT-26 | Icon tương tác đủ lớn, dễ bấm trên các màn hình khác nhau | Thử bấm nhanh các icon hover trên tin nhắn ở laptop 13" | Không bị bấm nhầm icon liền kề | | |
+| MT-22 | Đổi username | Mở ProfileModal, đổi tên, lưu | Tên mới hiển thị ngay khắp app không cần F5 | ✅Đúng | |
+| MT-23 | Đổi email không nhập mật khẩu | Bỏ trống ô mật khẩu, bấm "Đổi email" | Nút bị disable / bị chặn phía server (400) | ✅Đúng | |
+| MT-24 | Đổi email sai mật khẩu hiện tại | Nhập sai mật khẩu | HTTP 400 "Mật khẩu hiện tại không đúng", email KHÔNG đổi | ✅Đúng | |
+| MT-25 | Upload avatar > 8MB | Chọn ảnh 9MB | Bị chặn phía client trước khi gửi lên server | ✅Đúng | |
+| MT-26 | Icon tương tác đủ lớn, dễ bấm trên các màn hình khác nhau | Thử bấm nhanh các icon hover trên tin nhắn ở laptop 13" | Không bị bấm nhầm icon liền kề | ✅Đúng | |
 
 ## 7. Nhật ký lỗi đã phát hiện & khắc phục (Bug/Defect Log)
 
