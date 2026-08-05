@@ -404,13 +404,10 @@ export default function DMPage() {
                       </div>
 
                       {editingMessageId !== msg._id && (
-                        // Toolbar hành động khi hover tin nhắn: phóng to icon (text-base) + gói
-                        // trong khung nổi (nền + viền + shadow) để dễ nhận biết & dễ bấm hơn,
-                        // đồng bộ với ChannelPage.jsx.
-                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 flex-shrink-0 self-start bg-cm-bg border border-cm-border rounded-lg p-0.5 shadow-md -mt-1">
-                          {/* Di chuột vào đây sẽ bật bảng chọn 5 emoji (👍 ❤️ 😂 😢 😡) thay vì
-                              chỉ react 👍 mặc định như trước. */}
-                          <ReactionPicker onSelect={(emoji) => handleReact(msg._id, emoji)} />
+                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 flex-shrink-0 self-start">
+                          <button onClick={() => handleReact(msg._id)} title="Thả cảm xúc" className="text-cm-muted hover:text-white text-xs">
+                            😀
+                          </button>
                           {msg.sender._id === user?._id && (
                             <>
                               <button

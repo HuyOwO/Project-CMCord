@@ -450,9 +450,6 @@ export default function ChannelPage() {
             <span className="text-cm-muted text-lg">#</span>
             <span className="text-white font-semibold">{currentChannel?.name}</span>
           </div>
-          {/* Icon tương tác ở header phóng to (text-base, padding rộng hơn, hover có nền)
-              để dễ bấm hơn, đặc biệt trên màn hình cảm ứng. Nút 📌 đặt ngay cạnh 🔍 tìm
-              kiếm theo đúng yêu cầu, hiện số lượng tin đã ghim nếu > 0. */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowSearch(true)}
@@ -582,9 +579,13 @@ export default function ChannelPage() {
                       >
                         ↩️
                       </button>
-                      {/* Di chuột vào đây sẽ bật bảng chọn 5 emoji (👍 ❤️ 😂 😢 😡) thay vì
-                          chỉ react 👍 mặc định như trước. */}
-                      <ReactionPicker onSelect={(emoji) => handleReact(msg._id, emoji)} />
+                      <button
+                        onClick={() => handleReact(msg._id)}
+                        title="Thả cảm xúc"
+                        className="text-cm-muted hover:text-white text-xs"
+                      >
+                        😀
+                      </button>
                       <button
                         onClick={() => handleTogglePin(msg._id)}
                         title={msg.isPinned ? 'Bỏ ghim' : 'Ghim tin nhắn'}
