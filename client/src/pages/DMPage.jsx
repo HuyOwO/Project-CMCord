@@ -375,14 +375,15 @@ export default function DMPage() {
                           <AttachmentPreview fileUrl={msg.fileUrl} fileName={msg.fileName} fileType={msg.fileType} />
                         )}
 
+                        {/* Reaction chips phóng to (text-sm, padding rộng hơn) để dễ bấm lại/gỡ react hơn */}
                         {msg.reactions?.length > 0 && (
-                          <div className="flex gap-1 mt-1">
+                          <div className="flex gap-1.5 mt-1.5">
                             {msg.reactions.map((r) => (
                               <button
                                 key={r.emoji}
                                 onClick={() => handleReact(msg._id, r.emoji)}
-                                className={`text-xs px-1.5 py-0.5 rounded-full border ${
-                                  r.users.includes(user?._id) ? 'border-cm-accent bg-cm-accent/10' : 'border-cm-border'
+                                className={`text-sm px-2 py-1 rounded-full border transition-colors ${
+                                  r.users.includes(user?._id) ? 'border-cm-accent bg-cm-accent/10' : 'border-cm-border hover:border-cm-muted'
                                 }`}
                               >
                                 {r.emoji} {r.users.length}
@@ -393,16 +394,31 @@ export default function DMPage() {
                       </div>
 
                       {editingMessageId !== msg._id && (
-                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 flex-shrink-0 self-start">
-                          <button onClick={() => handleReact(msg._id)} title="Thả cảm xúc" className="text-cm-muted hover:text-white text-xs">
+                        // Toolbar hành động khi hover tin nhắn: phóng to icon (text-base) + gói
+                        // trong khung nổi (nền + viền + shadow) để dễ nhận biết & dễ bấm hơn,
+                        // đồng bộ với ChannelPage.jsx.
+                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 flex-shrink-0 self-start bg-cm-bg border border-cm-border rounded-lg p-0.5 shadow-md -mt-1">
+                          <button
+                            onClick={() => handleReact(msg._id)}
+                            title="Thả cảm xúc"
+                            className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
+                          >
                             😀
                           </button>
                           {msg.sender._id === user?._id && (
                             <>
-                              <button onClick={() => startEditMessage(msg)} title="Sửa tin nhắn" className="text-cm-muted hover:text-white text-xs">
+                              <button
+                                onClick={() => startEditMessage(msg)}
+                                title="Sửa tin nhắn"
+                                className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
+                              >
                                 ✏️
                               </button>
-                              <button onClick={() => handleDeleteMessage(msg._id)} title="Xoá tin nhắn" className="text-cm-muted hover:text-red-500 text-xs">
+                              <button
+                                onClick={() => handleDeleteMessage(msg._id)}
+                                title="Xoá tin nhắn"
+                                className="text-cm-muted hover:text-red-500 hover:bg-red-500/10 text-base p-1.5 rounded transition-colors"
+                              >
                                 🗑
                               </button>
                             </>
@@ -435,6 +451,7 @@ export default function DMPage() {
               )}
               {fileError && <p className="mb-1 text-red-400 text-xs">{fileError}</p>}
 
+              {/* Icon đính kèm/gửi phóng to (text-xl) + bo tròn nền khi hover cho vùng bấm rộng hơn */}
               <div className="bg-cm-input rounded-lg flex items-center px-2 gap-1">
                 <input
                   ref={fileInputRef}
@@ -446,7 +463,7 @@ export default function DMPage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   title="Đính kèm file (tối đa 8MB)"
-                  className="text-cm-muted hover:text-white text-lg px-2 py-3 flex-shrink-0"
+                  className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-3 rounded-full flex-shrink-0 transition-colors"
                 >
                   📎
                 </button>
@@ -457,7 +474,13 @@ export default function DMPage() {
                   placeholder={`Nhắn tin cho ${otherUser?.username || '...'}`}
                   className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted min-w-0"
                 />
-                <button type="submit" className="text-cm-muted hover:text-white transition-colors px-2 flex-shrink-0">➤</button>
+                <button
+                  type="submit"
+                  title="Gửi"
+                  className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-2 rounded-full transition-colors flex-shrink-0"
+                >
+                  ➤
+                </button>
               </div>
             </form>
           </>

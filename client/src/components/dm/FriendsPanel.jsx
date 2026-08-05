@@ -12,8 +12,9 @@ const TABS = [
 // Panel quản lý bạn bè: danh sách bạn, lời mời đến/đi, và form thêm bạn theo username.
 // Hiển thị làm nội dung chính của DMPage khi vào route /friends (thay cho khung chat).
 //
-// Milestone 3: chấm trạng thái dùng StatusDot (Có mặt/Đang chờ/Vắng mặt/Ngoại tuyến)
-// thay vì chỉ chấm xanh online/offline như trước.
+// Milestone 3: chấm trạng thái dùng StatusDot (Có mặt/Đang chờ/Vắng mặt/Ngoại tuyến).
+// Icon hành động khi hover (💬 nhắn tin, ✕ huỷ kết bạn) được phóng to (text-lg) + thêm
+// nền tròn khi hover để vùng bấm rộng hơn, dễ trúng hơn.
 export default function FriendsPanel({
   friends,
   incomingRequests,
@@ -103,14 +104,14 @@ export default function FriendsPanel({
                   <button
                     onClick={() => onMessageUser(f.user._id)}
                     title="Nhắn tin"
-                    className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-cm-accent text-sm px-2 flex-shrink-0"
+                    className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-cm-accent hover:bg-cm-bg text-lg p-1.5 rounded-full flex-shrink-0 transition-colors"
                   >
                     💬
                   </button>
                   <button
                     onClick={() => { if (window.confirm(`Huỷ kết bạn với ${f.user.username}?`)) onRemove(f._id); }}
                     title="Huỷ kết bạn"
-                    className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-red-400 text-sm px-2 flex-shrink-0"
+                    className="opacity-0 group-hover:opacity-100 text-cm-muted hover:text-red-400 hover:bg-cm-bg text-lg p-1.5 rounded-full flex-shrink-0 transition-colors"
                   >
                     ✕
                   </button>
@@ -134,10 +135,10 @@ export default function FriendsPanel({
                   {r.user.username[0].toUpperCase()}
                 </div>
                 <span className="text-white text-sm flex-1 truncate">{r.user.username}</span>
-                <button onClick={() => onAccept(r._id)} className="text-cm-green text-xs hover:underline flex-shrink-0">
+                <button onClick={() => onAccept(r._id)} className="text-cm-green text-sm hover:underline px-2 py-1 flex-shrink-0">
                   Chấp nhận
                 </button>
-                <button onClick={() => onRemove(r._id)} className="text-cm-muted hover:text-red-400 text-xs flex-shrink-0">
+                <button onClick={() => onRemove(r._id)} className="text-cm-muted hover:text-red-400 text-sm px-2 py-1 flex-shrink-0">
                   Từ chối
                 </button>
               </div>
@@ -156,7 +157,7 @@ export default function FriendsPanel({
                 </div>
                 <span className="text-white text-sm flex-1 truncate">{r.user.username}</span>
                 <span className="text-cm-muted text-xs flex-shrink-0">Đang chờ...</span>
-                <button onClick={() => onRemove(r._id)} className="text-cm-muted hover:text-red-400 text-xs flex-shrink-0">
+                <button onClick={() => onRemove(r._id)} className="text-cm-muted hover:text-red-400 text-sm px-2 py-1 flex-shrink-0">
                   Huỷ
                 </button>
               </div>
