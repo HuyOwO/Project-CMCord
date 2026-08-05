@@ -65,6 +65,13 @@ export const serverService = {
     const { data } = await api.patch(`/servers/${id}`, { name, description });
     return data.data;
   },
+  // Đổi ảnh đại diện (icon) server -- chỉ owner được gọi, backend tự kiểm tra quyền.
+  uploadAvatar: async (id, file) => {
+    const form = new FormData();
+    form.append('avatar', file);
+    const { data } = await api.patch(`/servers/${id}/avatar`, form);
+    return data.data;
+  },
   updateNickname: async (id, nickname) => {
     const { data } = await api.patch(`/servers/${id}/nickname`, { nickname });
     return data.data;
@@ -170,6 +177,12 @@ export const channelService = {
 export const messageService = {
   getAll: async (channelId, page = 1) => {
     const { data } = await api.get(`/channels/${channelId}/messages?page=${page}`);
+    return data.data;
+  },
+  // Milestone 3: toàn bộ tin nhắn đã ghim của channel (không giới hạn phân trang như getAll)
+  // -- dùng cho PinnedMessagesModal.jsx, mở từ nút 📌 cạnh ô tìm kiếm ở header.
+  getPinned: async (channelId) => {
+    const { data } = await api.get(`/channels/${channelId}/pinned`);
     return data.data;
   },
   send: async (channelId, content, file = null, replyTo = null) => {

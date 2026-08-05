@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, channelService, serverService, dmService } from '../services';
 import AttachmentPreview from '../components/common/AttachmentPreview';
+import ReactionPicker from '../components/common/ReactionPicker';
 import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth   from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
@@ -15,7 +16,19 @@ import MemberListPanel from '../components/server/MemberListPanel';
 import SearchModal from '../components/server/SearchModal';
 import ServerSettingsModal from '../components/server/ServerSettingsModal';
 import NicknameModal from '../components/server/NicknameModal';
+import PinnedMessagesModal from '../components/channel/PinnedMessagesModal';
 import { getRole, canDeleteMessage, getDisplayName } from '../utils/permissions';
+
+// Thêm/cập nhật/xoá 1 tin nhắn khỏi danh sách ghim, dùng chung cho cả REST response
+// (handleTogglePin) lẫn socket event ('message_pinned') để tránh lặp code 2 nơi.
+const applyPinUpdate = (prev, updatedMsg) => {
+  if (updatedMsg.isPinned) {
+    return prev.some((m) => m._id === updatedMsg._id)
+      ? prev.map((m) => (m._id === updatedMsg._id ? updatedMsg : m))
+      : [updatedMsg, ...prev];
+  }
+  return prev.filter((m) => m._id !== updatedMsg._id);
+};
 
 export default function ChannelPage() {
   const { serverId, channelId } = useParams();
@@ -25,6 +38,7 @@ export default function ChannelPage() {
   const goToServer               = useServerSelect();
 
   const [messages,  setMessages]  = useState([]);
+  const [pinnedMessages, setPinnedMessages] = useState([]);
   const [channels,  setChannels]  = useState([]);
   const [servers,   setServers]   = useState([]);
   const [server,    setServer]    = useState(null);
@@ -38,6 +52,7 @@ export default function ChannelPage() {
   const [showJoin, setShowJoin] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showPinned, setShowPinned] = useState(false);
   const [renamingChannel, setRenamingChannel] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -58,6 +73,9 @@ export default function ChannelPage() {
     serverService.getOne(serverId).then(setServer);
     channelService.getAll(serverId).then(setChannels);
     messageService.getAll(channelId).then(setMessages);
+    // Tải riêng danh sách tin đã ghim (không giới hạn theo trang như getAll ở trên) --
+    // xem giải thích trong messageController.js#getPinnedMessages.
+    messageService.getPinned(channelId).then(setPinnedMessages);
   }, [serverId, channelId]);
 
   // Socket: join channel và lắng nghe sự kiện
@@ -66,15 +84,17 @@ export default function ChannelPage() {
     setTyping([]); // reset khi chuyển channel/server, tránh state "đang gõ" cũ bị treo lại
     socket.emit('join_channel', { channelId });
     socket.on('new_message', msg => setMessages(prev => [...prev, msg]));
-    socket.on('message_deleted', ({ messageId }) =>
-      setMessages(prev => prev.filter(m => m._id !== messageId))
-    );
+    socket.on('message_deleted', ({ messageId }) => {
+      setMessages(prev => prev.filter(m => m._id !== messageId));
+      setPinnedMessages(prev => prev.filter(m => m._id !== messageId)); // tin bị xoá thì cũng biến mất khỏi danh sách ghim
+    });
     socket.on('message_edited', (updatedMsg) =>
       setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m))
     );
-    socket.on('message_pinned', (updatedMsg) =>
-      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m))
-    );
+    socket.on('message_pinned', (updatedMsg) => {
+      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
+      setPinnedMessages(prev => applyPinUpdate(prev, updatedMsg)); // đồng bộ real-time giữa các tab/thành viên
+    });
     socket.on('message_reacted', (updatedMsg) =>
       setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m))
     );
@@ -265,6 +285,7 @@ export default function ChannelPage() {
     if (!window.confirm('Xoá tin nhắn này?')) return;
     await messageService.remove(messageId);
     setMessages(prev => prev.filter(m => m._id !== messageId));
+    setPinnedMessages(prev => prev.filter(m => m._id !== messageId));
   };
 
   const handleUpdateServer = async ({ name, description }) => {
@@ -272,6 +293,12 @@ export default function ChannelPage() {
     setServer(updated);
     setServers(prev => prev.map(s => s._id === updated._id ? updated : s));
     setShowServerSettings(false);
+  };
+
+  const handleUploadServerAvatar = async (file) => {
+    const updated = await serverService.uploadAvatar(serverId, file);
+    setServer(updated);
+    setServers(prev => prev.map(s => s._id === updated._id ? updated : s));
   };
 
   const handleDeleteServer = async () => {
@@ -312,9 +339,12 @@ export default function ChannelPage() {
     setEditValue('');
   };
 
+  // Dùng chung cho cả nút 📌 trên từng tin nhắn lẫn nút "Bỏ ghim" trong PinnedMessagesModal
+  // -- togglePin đảo ngược trạng thái hiện tại nên gọi trên 1 tin đang ghim sẽ tự thành bỏ ghim.
   const handleTogglePin = async (messageId) => {
     const updated = await messageService.togglePin(messageId);
     setMessages(prev => prev.map(m => m._id === updated._id ? updated : m));
+    setPinnedMessages(prev => applyPinUpdate(prev, updated));
   };
 
   const handleReact = async (messageId, emoji = '👍') => {
@@ -371,6 +401,7 @@ export default function ChannelPage() {
         onClose={() => setShowServerSettings(false)}
         server={server}
         onSave={handleUpdateServer}
+        onUploadAvatar={handleUploadServerAvatar}
         onDeleteServer={handleDeleteServer}
       />
 
@@ -402,6 +433,15 @@ export default function ChannelPage() {
         currentUserId={user?._id}
       />
 
+      <PinnedMessagesModal
+        isOpen={showPinned}
+        onClose={() => setShowPinned(false)}
+        channelName={currentChannel?.name}
+        server={server}
+        pinnedMessages={pinnedMessages}
+        onUnpin={handleTogglePin}
+      />
+
       {/* Main chat area */}
       <div className="flex-1 flex flex-col bg-cm-surface">
         {/* Header */}
@@ -411,7 +451,8 @@ export default function ChannelPage() {
             <span className="text-white font-semibold">{currentChannel?.name}</span>
           </div>
           {/* Icon tương tác ở header phóng to (text-base, padding rộng hơn, hover có nền)
-              để dễ bấm hơn, đặc biệt trên màn hình cảm ứng. */}
+              để dễ bấm hơn, đặc biệt trên màn hình cảm ứng. Nút 📌 đặt ngay cạnh 🔍 tìm
+              kiếm theo đúng yêu cầu, hiện số lượng tin đã ghim nếu > 0. */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowSearch(true)}
@@ -419,6 +460,13 @@ export default function ChannelPage() {
               className="text-base px-2.5 py-1.5 rounded-lg text-cm-muted hover:text-white hover:bg-cm-input transition-colors"
             >
               🔍
+            </button>
+            <button
+              onClick={() => setShowPinned(true)}
+              title="Tin nhắn đã ghim"
+              className="text-base px-2.5 py-1.5 rounded-lg text-cm-muted hover:text-white hover:bg-cm-input transition-colors"
+            >
+              📌{pinnedMessages.length > 0 ? ` ${pinnedMessages.length}` : ''}
             </button>
             <button
               onClick={() => setShowMembers(v => !v)}
@@ -471,6 +519,11 @@ export default function ChannelPage() {
                           {getDisplayName(server, msg.author._id, msg.author.username)}
                         </span>
                         <span className="text-cm-muted text-xs">{formatTime(msg.createdAt)}</span>
+                        {msg.isPinned && (
+                          <span className="text-cm-accent text-xs flex items-center gap-0.5" title="Tin nhắn đã ghim">
+                            📌 Đã ghim
+                          </span>
+                        )}
                       </div>
                     )}
 
@@ -529,13 +582,9 @@ export default function ChannelPage() {
                       >
                         ↩️
                       </button>
-                      <button
-                        onClick={() => handleReact(msg._id)}
-                        title="Thả cảm xúc"
-                        className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
-                      >
-                        😀
-                      </button>
+                      {/* Di chuột vào đây sẽ bật bảng chọn 5 emoji (👍 ❤️ 😂 😢 😡) thay vì
+                          chỉ react 👍 mặc định như trước. */}
+                      <ReactionPicker onSelect={(emoji) => handleReact(msg._id, emoji)} />
                       <button
                         onClick={() => handleTogglePin(msg._id)}
                         title={msg.isPinned ? 'Bỏ ghim' : 'Ghim tin nhắn'}

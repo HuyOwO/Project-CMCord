@@ -3,6 +3,8 @@
 // - Bản trong HomePage hiển thị ĐẦY ĐỦ danh sách server.
 // - Bản trong ChannelPage chỉ hiển thị 1 icon của server đang mở (bug: không đổi server được).
 // Component này gộp lại thành một bản DUY NHẤT, đầy đủ, dùng chung cho cả hai trang.
+import { resolveFileUrl } from '../../config';
+
 export default function ServerSidebar({ servers, activeServerId, onSelectServer, onCreateClick, onJoinClick, onHomeClick, activeHome = false }) {
   return (
     <div className="w-[72px] bg-cm-bg flex flex-col items-center py-3 gap-2 border-r border-cm-border">
@@ -26,13 +28,17 @@ export default function ServerSidebar({ servers, activeServerId, onSelectServer,
           key={srv._id}
           onClick={() => onSelectServer(srv)}
           title={srv.name}
-          className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all hover:rounded-xl ${
+          className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all hover:rounded-xl overflow-hidden ${
             activeServerId === srv._id
               ? 'bg-cm-accent rounded-xl'
               : 'bg-cm-sidebar hover:bg-cm-accent'
           }`}
         >
-          {srv.name[0].toUpperCase()}
+          {srv.avatar ? (
+            <img src={resolveFileUrl(srv.avatar)} alt={srv.name} className="w-full h-full object-cover" />
+          ) : (
+            srv.name[0].toUpperCase()
+          )}
         </button>
       ))}
 

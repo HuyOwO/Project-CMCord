@@ -1,3 +1,5 @@
+import { resolveFileUrl } from '../../config';
+
 const ROLE_LABEL = { instructor: 'Instructor', ta: 'TA', student: 'Student' };
 const ROLE_ORDER = ['instructor', 'ta', 'student'];
 
@@ -21,8 +23,12 @@ export default function CourseMembersPanel({ course, currentUserId, isInstructor
               const isSelf = uid === currentUserId;
               return (
                 <div key={uid} className="flex items-center gap-3 px-3 py-2 bg-cm-input rounded">
-                  <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {m.user?.username?.[0]?.toUpperCase()}
+                  <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                    {m.user?.avatar ? (
+                      <img src={resolveFileUrl(m.user.avatar)} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      m.user?.username?.[0]?.toUpperCase()
+                    )}
                   </div>
                   <span className="text-cm-text text-sm flex-1 truncate">
                     {m.user?.username} {isSelf && <span className="text-cm-muted">(Bạn)</span>}

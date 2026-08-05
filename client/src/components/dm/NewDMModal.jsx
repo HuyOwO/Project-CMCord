@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { dmService } from '../../services';
+import { resolveFileUrl } from '../../config';
 
 // Modal chọn người để bắt đầu 1 cuộc trò chuyện riêng.
 // Danh sách chỉ gồm người CHUNG ít nhất 1 server với mình (chưa có hệ thống
@@ -60,8 +61,12 @@ export default function NewDMModal({ isOpen, onClose, onSelectUser }) {
               onClick={() => onSelectUser(c._id)}
               className="w-full flex items-center gap-2.5 px-2 py-2 rounded text-left hover:bg-cm-input"
             >
-              <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {c.username[0].toUpperCase()}
+              <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                {c.avatar ? (
+                  <img src={resolveFileUrl(c.avatar)} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  c.username[0].toUpperCase()
+                )}
               </div>
               <span className="text-cm-text text-sm truncate">{c.username}</span>
             </button>

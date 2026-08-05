@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Friendship = require('../models/Friendship');
 const { getUploadedFileUrl } = require('../utils/fileUrl');
 const { areFriends } = require('./friendController');
+const { ALLOWED_REACTIONS } = require('../utils/reactions');
 
 // Kiểm tra 2 user có chung ít nhất 1 server không. Dự án CHƯA có hệ thống bạn bè
 // nên tạm chặn DM theo điều kiện này để tránh nhắn tin làm phiền người lạ
@@ -20,7 +21,6 @@ const shareServer = async (userIdA, userIdB) => {
 const getContacts = async (req, res) => {
   try {
     const servers = await ServerModel.find({ 'members.user': req.user._id })
-      // Milestone 3: kèm `status` để danh sách liên hệ có chấm trạng thái ngay khi tải trang.
       .populate('members.user', 'username avatar status');
 
     const seen = new Map();
@@ -198,10 +198,13 @@ const deleteMessage = async (req, res) => {
   }
 };
 
-// POST /api/dm/messages/:id/react  { emoji }
+// POST /api/dm/messages/:id/react  { emoji } -- emoji phải nằm trong ALLOWED_REACTIONS
 const toggleReaction = async (req, res) => {
   try {
     const { emoji } = req.body;
+    if (!ALLOWED_REACTIONS.includes(emoji))
+      return res.status(400).json({ success: false, message: 'Emoji không được hỗ trợ' });
+
     const message = await DirectMessage.findById(req.params.id);
     if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
 

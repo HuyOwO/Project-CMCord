@@ -2,6 +2,7 @@ import { getRole, canModerateMember } from '../../utils/permissions';
 import { useOnlineUsers, useUserStatuses } from '../../hooks/useSocket';
 import { getEffectiveStatus } from '../../utils/status';
 import StatusDot from '../common/StatusDot';
+import { resolveFileUrl } from '../../config';
 
 const ROLE_LABEL = { owner: 'Chủ sở hữu', moderator: 'Moderator', member: 'Thành viên' };
 
@@ -61,8 +62,16 @@ export default function MemberListPanel({ server, currentUserId, onPromote, onDe
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="relative flex-shrink-0">
-                      <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold">
-                        {(m.nickname || m.user?.username)?.[0]?.toUpperCase()}
+                      <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                        {m.user?.avatar ? (
+                          <img
+                            src={resolveFileUrl(m.user.avatar)}
+                            alt={m.nickname || m.user?.username}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          (m.nickname || m.user?.username)?.[0]?.toUpperCase()
+                        )}
                       </div>
                       <StatusDot status={effectiveStatus} borderClass="border-cm-sidebar" />
                     </div>

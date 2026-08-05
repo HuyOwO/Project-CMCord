@@ -170,8 +170,12 @@ export default function SearchModal({ isOpen, onClose, server, onJumpToChannel, 
                   onClick={() => jump(m.channel)}
                   className="w-full text-left flex items-start gap-2 px-2 py-2 rounded hover:bg-cm-input"
                 >
-                  <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {(m.author?.username || '?')[0].toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                    {m.author?.avatar ? (
+                      <img src={resolveFileUrl(m.author.avatar)} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (m.author?.username || '?')[0].toUpperCase()
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
@@ -233,8 +237,12 @@ export default function SearchModal({ isOpen, onClose, server, onJumpToChannel, 
               </div>
               {results.members.map((m) => (
                 <div key={m.user?._id} className="w-full flex items-center gap-2 px-2 py-2 rounded">
-                  <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {(m.nickname || m.user?.username || '?')[0].toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                    {m.user?.avatar ? (
+                      <img src={resolveFileUrl(m.user.avatar)} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (m.nickname || m.user?.username || '?')[0].toUpperCase()
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-white text-sm truncate">

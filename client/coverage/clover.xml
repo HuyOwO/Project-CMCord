@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1785918453749" clover="3.2.0">
-  <project timestamp="1785918453750" name="All files">
+<coverage generated="1785940725109" clover="3.2.0">
+  <project timestamp="1785940725109" name="All files">
     <metrics statements="64" coveredstatements="64" conditionals="49" coveredconditionals="49" methods="10" coveredmethods="10" elements="123" coveredelements="123" complexity="0" loc="64" ncloc="64" packages="1" files="4" classes="4"/>
     <file name="coursePermissions.js" path="C:\Users\tulig\Project-CMCord\client\src\utils\coursePermissions.js">
       <metrics statements="12" coveredstatements="12" conditionals="11" coveredconditionals="11" methods="3" coveredmethods="3"/>

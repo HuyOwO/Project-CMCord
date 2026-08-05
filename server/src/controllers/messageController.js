@@ -3,6 +3,7 @@ const { getUploadedFileUrl } = require('../utils/fileUrl');
 const Channel = require('../models/Channel');
 const ServerModel = require('../models/Server');
 const { getRole, canDeleteMessage } = require('../utils/permissions');
+const { ALLOWED_REACTIONS } = require('../utils/reactions');
 // GET /api/channels/:channelId/messages?page=1&limit=50
 const getMessages = async (req, res) => {
   try {
@@ -21,6 +22,29 @@ const getMessages = async (req, res) => {
       .limit(Number(limit));
 
     res.json({ success: true, data: messages.reverse() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// GET /api/channels/:channelId/pinned
+// Trả về TOÀN BỘ tin nhắn đã ghim của channel, không giới hạn theo trang như getMessages
+// -- vì 1 tin có thể được ghim từ rất lâu và đã rơi ra khỏi 50 tin gần nhất mà client
+// đang tải sẵn, nên không thể chỉ lọc `isPinned` trên danh sách tin nhắn hiện có ở FE.
+const getPinnedMessages = async (req, res) => {
+  try {
+    const channel = await Channel.findById(req.params.channelId);
+    if (!channel) return res.status(404).json({ success: false, message: 'Channel not found' });
+
+    const server = await ServerModel.findById(channel.server);
+    const isMember = server?.members.some(m => m.user.equals(req.user._id));
+    if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
+
+    const messages = await Message.find({ channel: req.params.channelId, isPinned: true })
+      .populate('author', 'username avatar')
+      .sort({ createdAt: -1 }); // ghim gần đây nhất (theo thời điểm gửi) lên đầu
+
+    res.json({ success: true, data: messages });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -126,10 +150,13 @@ const togglePin = async (req, res) => {
   }
 };
 
-// POST /api/messages/:id/react  { emoji }
+// POST /api/messages/:id/react  { emoji } -- emoji phải nằm trong ALLOWED_REACTIONS
 const toggleReaction = async (req, res) => {
   try {
     const { emoji } = req.body;
+    if (!ALLOWED_REACTIONS.includes(emoji))
+      return res.status(400).json({ success: false, message: 'Emoji không được hỗ trợ' });
+
     const message = await Message.findById(req.params.id);
     if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
 
@@ -153,4 +180,4 @@ const toggleReaction = async (req, res) => {
   }
 };
 
-module.exports = { getMessages, sendMessage, updateMessage, deleteMessage, togglePin, toggleReaction };
+module.exports = { getMessages, getPinnedMessages, sendMessage, updateMessage, deleteMessage, togglePin, toggleReaction };

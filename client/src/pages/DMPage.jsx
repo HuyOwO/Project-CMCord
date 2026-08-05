@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { serverService, dmService, friendService } from '../services';
 import AttachmentPreview from '../components/common/AttachmentPreview';
+import ReactionPicker from '../components/common/ReactionPicker';
 import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
 import useAuth from '../hooks/useAuth';
 import useSocket, { useOnlineUsers } from '../hooks/useSocket';
@@ -10,6 +11,7 @@ import ServerSidebar from '../components/server/ServerSidebar';
 import DMSidebar from '../components/dm/DMSidebar';
 import NewDMModal from '../components/dm/NewDMModal';
 import FriendsPanel from '../components/dm/FriendsPanel';
+import { resolveFileUrl } from '../config';
 
 const GROUP_GAP_MS = 5 * 60 * 1000;
 
@@ -303,8 +305,12 @@ export default function DMPage() {
           <>
             {/* Header */}
             <div className="px-4 py-3 border-b border-cm-border flex items-center gap-2 shadow-sm">
-              <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold">
-                {otherUser?.username?.[0]?.toUpperCase()}
+              <div className="w-7 h-7 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                {otherUser?.avatar ? (
+                  <img src={resolveFileUrl(otherUser.avatar)} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  otherUser?.username?.[0]?.toUpperCase()
+                )}
               </div>
               <span className="text-white font-semibold">{otherUser?.username}</span>
               {onlineUsers.has(otherUser?._id) && (
@@ -335,8 +341,12 @@ export default function DMPage() {
                     )}
                     <div className={`flex gap-3 ${showHeader && !newDay ? 'mt-4' : ''} group`}>
                       {showHeader ? (
-                        <div className="w-10 h-10 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                          {msg.sender.username[0].toUpperCase()}
+                        <div className="w-10 h-10 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+                          {msg.sender.avatar ? (
+                            <img src={resolveFileUrl(msg.sender.avatar)} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            msg.sender.username[0].toUpperCase()
+                          )}
                         </div>
                       ) : (
                         <div className="w-10 flex-shrink-0" />
@@ -398,13 +408,9 @@ export default function DMPage() {
                         // trong khung nổi (nền + viền + shadow) để dễ nhận biết & dễ bấm hơn,
                         // đồng bộ với ChannelPage.jsx.
                         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 flex-shrink-0 self-start bg-cm-bg border border-cm-border rounded-lg p-0.5 shadow-md -mt-1">
-                          <button
-                            onClick={() => handleReact(msg._id)}
-                            title="Thả cảm xúc"
-                            className="text-cm-muted hover:text-white hover:bg-cm-input text-base p-1.5 rounded transition-colors"
-                          >
-                            😀
-                          </button>
+                          {/* Di chuột vào đây sẽ bật bảng chọn 5 emoji (👍 ❤️ 😂 😢 😡) thay vì
+                              chỉ react 👍 mặc định như trước. */}
+                          <ReactionPicker onSelect={(emoji) => handleReact(msg._id, emoji)} />
                           {msg.sender._id === user?._id && (
                             <>
                               <button

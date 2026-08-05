@@ -1,6 +1,7 @@
 const ServerModel = require('../models/Server');
 const Channel = require('../models/Channel');
 const { getRole, canModerateMember, canChangeRole } = require('../utils/permissions');
+const { getUploadedFileUrl } = require('../utils/fileUrl');
 
 // GET /api/servers
 const getServers = async (req, res) => {
@@ -186,6 +187,26 @@ const updateServer = async (req, res) => {
   }
 };
 
+// PATCH /api/servers/:id/avatar  (multipart, field "avatar") -- chỉ owner được đổi icon server
+const updateServerAvatar = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Vui lòng chọn ảnh' });
+
+    const server = await ServerModel.findById(req.params.id);
+    if (!server) return res.status(404).json({ success: false, message: 'Server not found' });
+    if (!server.owner.equals(req.user._id))
+      return res.status(403).json({ success: false, message: 'Chỉ chủ server mới được đổi ảnh server' });
+
+    server.avatar = getUploadedFileUrl(req.file);
+    await server.save();
+    await server.populate('owner', 'username avatar');
+    await server.populate('members.user', 'username avatar status');
+    res.json({ success: true, data: server });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // PATCH /api/servers/:id/nickname  { nickname }  -- mỗi người tự đổi biệt danh của chính mình
 const updateNickname = async (req, res) => {
   try {
@@ -244,6 +265,6 @@ const deleteServer = async (req, res) => {
 
 module.exports = {
   getServers, createServer, getServer, joinServer, deleteServer,
-  updateServer, updateNickname, leaveServer,
+  updateServer, updateServerAvatar, updateNickname, leaveServer,
   updateMemberRole, kickMember, banMember, unbanMember,
 };

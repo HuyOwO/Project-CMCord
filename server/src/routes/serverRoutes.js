@@ -1,11 +1,12 @@
 const express = require('express');
 const {
   getServers, createServer, getServer, joinServer, deleteServer,
-  updateServer, updateNickname, leaveServer,
+  updateServer, updateServerAvatar, updateNickname, leaveServer,
   updateMemberRole, kickMember, banMember, unbanMember,
 } = require('../controllers/serverController');
 const { searchServer } = require('../controllers/searchController');
 const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.delete('/:id',    deleteServer);
 
 router.get('/:id/search', searchServer);
 
+router.patch('/:id/avatar',               upload.single('avatar'), updateServerAvatar);
 router.patch('/:id/nickname',             updateNickname);
 router.delete('/:id/leave',               leaveServer);
 router.patch('/:id/members/:userId/role', updateMemberRole);

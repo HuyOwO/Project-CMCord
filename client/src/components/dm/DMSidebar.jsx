@@ -2,6 +2,7 @@ import UserPanel from '../layout/UserPanel';
 import { useUserStatuses } from '../../hooks/useSocket';
 import { getEffectiveStatus } from '../../utils/status';
 import StatusDot from '../common/StatusDot';
+import { resolveFileUrl } from '../../config';
 
 // Lấy người còn lại trong cuộc trò chuyện 1-1 (khác với chính mình)
 const getOtherParticipant = (conversation, currentUserId) =>
@@ -85,8 +86,12 @@ export default function DMSidebar({
               }`}
             >
               <div className="relative flex-shrink-0">
-                <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold">
-                  {other?.username?.[0]?.toUpperCase()}
+                <div className="w-8 h-8 rounded-full bg-cm-accent flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                  {other?.avatar ? (
+                    <img src={resolveFileUrl(other.avatar)} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    other?.username?.[0]?.toUpperCase()
+                  )}
                 </div>
                 <StatusDot status={effectiveStatus} borderClass="border-cm-sidebar" />
               </div>

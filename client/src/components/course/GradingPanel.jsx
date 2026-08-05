@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { submissionService } from '../../services';
 import AttachmentPreview from '../common/AttachmentPreview';
+import { resolveFileUrl } from '../../config';
 
 // Panel chấm điểm dành cho instructor/TA: liệt kê TẤT CẢ bài nộp của assignment này,
 // mỗi hàng có thể mở ra để xem nội dung + chấm điểm/nhận xét.
@@ -68,8 +69,12 @@ function SubmissionRow({ submission, isOpen, onToggle, onGraded }) {
   return (
     <div className="bg-cm-bg rounded">
       <button onClick={onToggle} className="w-full flex items-center gap-3 px-3 py-2 text-left">
-        <div className="w-6 h-6 rounded-full bg-cm-accent flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-          {submission.student?.username?.[0]?.toUpperCase()}
+        <div className="w-6 h-6 rounded-full bg-cm-accent flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 overflow-hidden">
+          {submission.student?.avatar ? (
+            <img src={resolveFileUrl(submission.student.avatar)} alt="" className="w-full h-full object-cover" />
+          ) : (
+            submission.student?.username?.[0]?.toUpperCase()
+          )}
         </div>
         <span className="text-cm-text text-sm flex-1 truncate">{submission.student?.username}</span>
         {submission.isLate && <span className="text-yellow-400 text-xs flex-shrink-0">Trễ hạn</span>}

@@ -2,6 +2,19 @@ import { useState } from 'react';
 import { useUserStatuses } from '../../hooks/useSocket';
 import { getEffectiveStatus } from '../../utils/status';
 import StatusDot from '../common/StatusDot';
+import { resolveFileUrl } from '../../config';
+
+function FriendAvatar({ user, className }) {
+  return (
+    <div className={`rounded-full bg-cm-accent flex items-center justify-center text-white font-bold overflow-hidden ${className}`}>
+      {user?.avatar ? (
+        <img src={resolveFileUrl(user.avatar)} alt="" className="w-full h-full object-cover" />
+      ) : (
+        user?.username?.[0]?.toUpperCase()
+      )}
+    </div>
+  );
+}
 
 const TABS = [
   { key: 'all', label: 'Tất cả' },
@@ -92,9 +105,7 @@ export default function FriendsPanel({
               return (
                 <div key={f._id} className="flex items-center gap-3 px-2 py-2.5 rounded hover:bg-cm-input group">
                   <div className="relative flex-shrink-0">
-                    <div className="w-9 h-9 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold">
-                      {f.user.username[0].toUpperCase()}
-                    </div>
+                    <FriendAvatar user={f.user} className="w-9 h-9 text-sm" />
                     <StatusDot status={effectiveStatus} borderClass="border-cm-surface" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -131,9 +142,7 @@ export default function FriendsPanel({
             )}
             {incomingRequests.map((r) => (
               <div key={r._id} className="flex items-center gap-3 px-2 py-2.5 rounded hover:bg-cm-input">
-                <div className="w-9 h-9 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  {r.user.username[0].toUpperCase()}
-                </div>
+                <FriendAvatar user={r.user} className="w-9 h-9 text-sm flex-shrink-0" />
                 <span className="text-white text-sm flex-1 truncate">{r.user.username}</span>
                 <button onClick={() => onAccept(r._id)} className="text-cm-green text-sm hover:underline px-2 py-1 flex-shrink-0">
                   Chấp nhận
@@ -152,9 +161,7 @@ export default function FriendsPanel({
             )}
             {outgoingRequests.map((r) => (
               <div key={r._id} className="flex items-center gap-3 px-2 py-2.5 rounded hover:bg-cm-input">
-                <div className="w-9 h-9 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  {r.user.username[0].toUpperCase()}
-                </div>
+                <FriendAvatar user={r.user} className="w-9 h-9 text-sm flex-shrink-0" />
                 <span className="text-white text-sm flex-1 truncate">{r.user.username}</span>
                 <span className="text-cm-muted text-xs flex-shrink-0">Đang chờ...</span>
                 <button onClick={() => onRemove(r._id)} className="text-cm-muted hover:text-red-400 text-sm px-2 py-1 flex-shrink-0">

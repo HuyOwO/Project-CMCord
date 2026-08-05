@@ -86,6 +86,12 @@ export default function HomePage() {
     setShowServerSettings(false);
   };
 
+  const handleUploadServerAvatar = async (file) => {
+    const updated = await serverService.uploadAvatar(selected._id, file);
+    setSelected(updated);
+    setServers(prev => prev.map(s => s._id === updated._id ? updated : s));
+  };
+
   const handleDeleteServer = async () => {
     if (!window.confirm(`Xoá vĩnh viễn server "${selected?.name}"? Hành động này KHÔNG thể hoàn tác.`)) return;
     await serverService.remove(selected._id);
@@ -160,6 +166,7 @@ export default function HomePage() {
         onClose={() => setShowServerSettings(false)}
         server={selected}
         onSave={handleUpdateServer}
+        onUploadAvatar={handleUploadServerAvatar}
         onDeleteServer={handleDeleteServer}
       />
 
