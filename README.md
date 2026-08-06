@@ -6,7 +6,7 @@
 ## (ĐỌC TRƯỚC KHI CÀI ĐẶT)
 
 > **Phần mềm không có bất kì sự liên kết tới cơ quan hay tổ chức khác.**  
-> Mục đích của dự án hoàn toàn mang tính giáo dục và phát triển phần mềm. 
+> Mục đích của dự án hoàn toàn mang tính giáo dục và phục vụ nghiên cứu phát triển phần mềm. 
 ---
 ## ✨ Tính năng chính
 
@@ -17,7 +17,7 @@
 - **Tin nhắn riêng (Direct Message)**: nhắn 1-1 với người chung server hoặc bạn bè, real-time, đính kèm file, reaction, sửa/xoá
 - **Bạn bè**: gửi/nhận lời mời kết bạn theo username, chấp nhận/từ chối, danh sách bạn bè kèm trạng thái online, nhắn tin trực tiếp không cần chung server
 - **Chia sẻ file**: đính kèm file tối đa **8MB**/tin nhắn; lưu trên đĩa cục bộ khi chạy dev, tự chuyển sang **Cloudinary** (free) khi deploy thật
-- **🎓 Learning System (Milestone 2 – MỚI)**: mỗi server có thể có nhiều khoá học (Course) riêng, join bằng mã mời riêng của khoá học; vai trò Instructor / TA / Student; đăng tài liệu bài học (Lesson) theo thứ tự; giao bài tập (Assignment) có deadline + file đính kèm; sinh viên nộp bài (Submission, hỗ trợ nộp lại); giảng viên/TA chấm điểm (thang 10) kèm nhận xét, sinh viên nhận thông báo real-time ngay khi có điểm mới
+- **🎓 Learning System **: mỗi server có thể có nhiều khoá học (Course) riêng, tham gia bằng mã mời riêng của khoá học; đăng tài liệu bài học (Lesson) theo thứ tự; giao bài tập (Assignment) có deadline + file đính kèm; sinh viên nộp bài (Submission); giảng viên/TA chấm điểm (thang 10) kèm nhận xét.
 
 ## Tech Stack
 
