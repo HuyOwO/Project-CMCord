@@ -13,7 +13,7 @@ const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
     // origin: true => phản chiếu origin của request, cho phép mọi máy trong LAN kết nối socket khi test.
     // Khi deploy thật, nên đổi lại thành danh sách domain cụ thể cho an toàn.
-    cors: { origin: true, credentials: true },
+    cors: { origin: process.env.CLIENT_URL || true, credentials: true },
   });
 
   // Xác thực JWT trước khi kết nối socket

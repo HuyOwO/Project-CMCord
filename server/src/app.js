@@ -23,7 +23,7 @@ const app = express();
 
 // origin: true => phản chiếu origin của request, cho phép mọi máy trong LAN gọi API khi test.
 // Khi deploy thật, nên đổi lại thành danh sách domain cụ thể cho an toàn.
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL || true, credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

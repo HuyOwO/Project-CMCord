@@ -22,7 +22,7 @@ import NicknameModal from '../components/server/NicknameModal';
 import PinnedMessagesModal from '../components/channel/PinnedMessagesModal';
 import { getRole, canDeleteMessage, getDisplayName } from '../utils/permissions';
 import { resolveChannelPermission } from '../utils/channelPermissions';
-
+import { resolveFileUrl } from '../config';
 // Thêm/cập nhật/xoá 1 tin nhắn khỏi danh sách ghim, dùng chung cho cả REST response
 // (handleTogglePin) lẫn socket event ('message_pinned') để tránh lặp code 2 nơi.
 const applyPinUpdate = (prev, updatedMsg) => {
@@ -537,12 +537,20 @@ export default function ChannelPage() {
                   }`}
                 >
                   {showHeader ? (
-                    <div className="w-10 h-10 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      {getDisplayName(server, msg.author._id, msg.author.username)[0].toUpperCase()}
-                    </div>
-                  ) : (
-                    <div className="w-10 flex-shrink-0" />
-                  )}
+                       <div className="w-10 h-10 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+                      {msg.author.avatar ? (
+                        <img
+                          src={resolveFileUrl(msg.author.avatar)}
+                          alt={getDisplayName(server, msg.author._id, msg.author.username)}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        getDisplayName(server, msg.author._id, msg.author.username)[0].toUpperCase()
+                      )}
+                     </div>
+                   ) : (
+                     <div className="w-10 flex-shrink-0" />
+                   )}
                   <div className="flex-1 min-w-0">
                     {showHeader && (
                       <div className="flex items-baseline gap-2 mb-0.5">
