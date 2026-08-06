@@ -17,6 +17,7 @@ const courseDetailRoutes = require('./routes/courseDetailRoutes');
 const lessonRoutes       = require('./routes/lessonRoutes');
 const assignmentRoutes   = require('./routes/assignmentRoutes');
 const submissionRoutes   = require('./routes/submissionRoutes');
+const taskRoutes         = require('./routes/taskRoutes');
 
 const app = express();
 
@@ -37,10 +38,11 @@ app.use('/api/dm', dmRoutes);
 app.use('/api/friends', friendRoutes);
 
 // Milestone 2 – Learning System
-app.use('/api/courses',     courseDetailRoutes); // /api/courses/:id, /join, /:id/members/..., + nested lessons/assignments
+app.use('/api/courses',     courseDetailRoutes); // /api/courses/:id, /join, /:id/members/..., + nested lessons/assignments/tasks
 app.use('/api/lessons',     lessonRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/tasks',       taskRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));

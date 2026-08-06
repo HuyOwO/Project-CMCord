@@ -67,7 +67,7 @@ export default function CourseListSidebar({
                 : 'text-cm-muted hover:bg-cm-input hover:text-cm-text'
             }`}
           >
-            <span>📘</span> <span className="truncate">{course.name}</span>
+            <span>{course.type === 'major' ? '🧩' : '📘'}</span> <span className="truncate">{course.name}</span>
           </button>
         ))}
       </div>

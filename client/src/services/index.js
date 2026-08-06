@@ -172,6 +172,11 @@ export const channelService = {
   remove: async (serverId, channelId) => {
     await api.delete(`/servers/${serverId}/channels/${channelId}`);
   },
+  // overrides: [{ role: 'moderator' | 'member', canView, canSend }]
+  updatePermissions: async (serverId, channelId, overrides) => {
+    const { data } = await api.patch(`/servers/${serverId}/channels/${channelId}/permissions`, { overrides });
+    return data.data;
+  },
 };
 
 export const messageService = {
@@ -219,8 +224,8 @@ export const courseService = {
     const { data } = await api.get(`/servers/${serverId}/courses`);
     return data.data;
   },
-  create: async (serverId, { name, description }) => {
-    const { data } = await api.post(`/servers/${serverId}/courses`, { name, description });
+  create: async (serverId, { name, description, type }) => {
+    const { data } = await api.post(`/servers/${serverId}/courses`, { name, description, type });
     return data.data;
   },
   getOne: async (id) => {
@@ -320,5 +325,34 @@ export const submissionService = {
   grade: async (id, { score, feedback }) => {
     const { data } = await api.patch(`/submissions/${id}/grade`, { score, feedback });
     return data.data;
+  },
+};
+
+// Milestone 4 (khoá học chuyên ngành): Nhiệm vụ kiểu issue-tracker -- thay cho Bài tập.
+// `update` gộp luôn thao tác "phân công" qua field assigneeId (null = bỏ phân công).
+export const taskService = {
+  getAll: async (courseId) => {
+    const { data } = await api.get(`/courses/${courseId}/tasks`);
+    return data.data;
+  },
+  create: async (courseId, { title, description, deadline }, file = null) => {
+    const form = new FormData();
+    form.append('title', title);
+    if (description) form.append('description', description);
+    if (deadline) form.append('deadline', deadline);
+    if (file) form.append('file', file);
+    const { data } = await api.post(`/courses/${courseId}/tasks`, form);
+    return data.data;
+  },
+  update: async (id, { title, description, deadline, assigneeId }) => {
+    const { data } = await api.patch(`/tasks/${id}`, { title, description, deadline, assigneeId });
+    return data.data;
+  },
+  updateStatus: async (id, status) => {
+    const { data } = await api.patch(`/tasks/${id}/status`, { status });
+    return data.data;
+  },
+  remove: async (id) => {
+    await api.delete(`/tasks/${id}`);
   },
 };

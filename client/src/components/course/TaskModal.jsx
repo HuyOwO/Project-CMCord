@@ -1,0 +1,172 @@
+import { useState, useEffect, useRef } from 'react';
+import Modal from '../common/Modal';
+import { formatFileSize, MAX_FILE_SIZE } from '../../utils/file';
+
+// Chuyển Date -> chuỗi cho input[type=datetime-local] (giờ địa phương, không có giây/Z)
+const toDatetimeLocal = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+// Modal tạo Nhiệm vụ mới HOẶC sửa nhiệm vụ có sẵn (truyền prop `task` để chuyển sang chế độ sửa).
+// `members` là course.members -- dùng để hiển thị dropdown chọn người phụ trách (phân công).
+// Chỉ mở được cho instructor/TA (kiểm tra ở component cha, CourseDetailPage.jsx).
+export default function TaskModal({ isOpen, onClose, onSave, task = null, members = [] }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [assigneeId, setAssigneeId] = useState('');
+  const [file, setFile] = useState(null);
+  const [fileError, setFileError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+  const isEdit = !!task;
+
+  useEffect(() => {
+    if (isOpen) {
+      setTitle(task?.title || '');
+      setDescription(task?.description || '');
+      setDeadline(toDatetimeLocal(task?.deadline));
+      setAssigneeId(task?.assignee?._id || '');
+      setFile(null);
+      setFileError('');
+      setSubmitError('');
+    }
+  }, [isOpen, task]);
+
+  const handleFileSelect = (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    if (f.size > MAX_FILE_SIZE) {
+      setFileError(`File "${f.name}" vượt quá 8MB.`);
+      return;
+    }
+    setFileError('');
+    setFile(f);
+  };
+
+  const handleClose = () => {
+    setTitle('');
+    setDescription('');
+    setDeadline('');
+    setAssigneeId('');
+    setFile(null);
+    onClose();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setLoading(true);
+    setSubmitError('');
+    try {
+      await onSave(
+        { title: title.trim(), description, deadline: deadline || null, assigneeId: assigneeId || null },
+        file
+      );
+      handleClose();
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Lưu nhiệm vụ thất bại, vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose}>
+      <h2 className="text-white font-bold text-lg mb-4">
+        {isEdit ? 'Sửa nhiệm vụ' : 'Tạo nhiệm vụ mới'}
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div>
+          <label className="text-cm-muted text-xs block mb-1">Tiêu đề</label>
+          <input
+            autoFocus
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="VD: Xây dựng API đăng nhập"
+            className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
+          />
+        </div>
+        <div>
+          <label className="text-cm-muted text-xs block mb-1">Mô tả / yêu cầu</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-cm-accent"
+          />
+        </div>
+
+        <div>
+          <label className="text-cm-muted text-xs block mb-1">Phân công cho</label>
+          <select
+            value={assigneeId}
+            onChange={(e) => setAssigneeId(e.target.value)}
+            className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
+          >
+            <option value="">— Chưa phân công —</option>
+            {members.map((m) => {
+              const uid = m.user?._id || m.user;
+              return (
+                <option key={uid} value={uid}>
+                  {m.nickname || m.user?.username} ({m.role})
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-cm-muted text-xs block mb-1">Deadline (tuỳ chọn)</label>
+          <input
+            type="datetime-local"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
+          />
+        </div>
+
+        {!isEdit && (
+          <div>
+            <label className="text-cm-muted text-xs block mb-1">File đính kèm (tuỳ chọn, tối đa 8MB)</label>
+            <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-xs px-3 py-1.5 bg-cm-input hover:bg-cm-border rounded text-cm-text"
+            >
+              📎 Chọn file
+            </button>
+            {file && (
+              <div className="mt-2 flex items-center gap-2 text-xs text-cm-text">
+                <span className="truncate flex-1">{file.name}</span>
+                <span className="text-cm-muted flex-shrink-0">{formatFileSize(file.size)}</span>
+                <button type="button" onClick={() => setFile(null)} className="text-cm-muted hover:text-white">✕</button>
+              </div>
+            )}
+            {fileError && <p className="text-red-400 text-xs mt-1">{fileError}</p>}
+          </div>
+        )}
+
+        <div className="flex gap-2 justify-end pt-1">
+          <button type="button" onClick={handleClose} className="px-4 py-1.5 text-cm-muted hover:text-white text-sm">
+            Hủy
+          </button>
+          <button
+            type="submit"
+            disabled={loading || !title.trim()}
+            className="px-4 py-1.5 bg-cm-accent hover:bg-indigo-500 disabled:opacity-50 text-white text-sm rounded"
+          >
+            {loading ? 'Đang lưu...' : 'Lưu'}
+          </button>
+        </div>
+        {submitError && <p className="text-red-400 text-xs text-right">{submitError}</p>}
+      </form>
+    </Modal>
+  );
+}

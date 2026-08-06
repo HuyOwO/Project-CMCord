@@ -3,6 +3,7 @@ const { getUploadedFileUrl } = require('../utils/fileUrl');
 const Channel = require('../models/Channel');
 const ServerModel = require('../models/Server');
 const { getRole, canDeleteMessage } = require('../utils/permissions');
+const { resolveChannelPermission } = require('../utils/channelPermissions');
 const { ALLOWED_REACTIONS } = require('../utils/reactions');
 // GET /api/channels/:channelId/messages?page=1&limit=50
 const getMessages = async (req, res) => {
@@ -11,8 +12,11 @@ const getMessages = async (req, res) => {
     if (!channel) return res.status(404).json({ success: false, message: 'Channel not found' });
 
     const server = await ServerModel.findById(channel.server);
-    const isMember = server?.members.some(m => m.user.equals(req.user._id));
-    if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
+    const actorRole = server ? getRole(server, req.user._id) : null;
+    if (!actorRole) return res.status(403).json({ success: false, message: 'Not a member' });
+
+    if (!resolveChannelPermission(channel, actorRole).canView)
+      return res.status(403).json({ success: false, message: 'Không có quyền xem kênh này' });
 
     const { page = 1, limit = 50 } = req.query;
     const messages = await Message.find({ channel: req.params.channelId })
@@ -37,8 +41,11 @@ const getPinnedMessages = async (req, res) => {
     if (!channel) return res.status(404).json({ success: false, message: 'Channel not found' });
 
     const server = await ServerModel.findById(channel.server);
-    const isMember = server?.members.some(m => m.user.equals(req.user._id));
-    if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
+    const actorRole = server ? getRole(server, req.user._id) : null;
+    if (!actorRole) return res.status(403).json({ success: false, message: 'Not a member' });
+
+    if (!resolveChannelPermission(channel, actorRole).canView)
+      return res.status(403).json({ success: false, message: 'Không có quyền xem kênh này' });
 
     const messages = await Message.find({ channel: req.params.channelId, isPinned: true })
       .populate('author', 'username avatar')
@@ -57,8 +64,11 @@ const sendMessage = async (req, res) => {
     if (!channel) return res.status(404).json({ success: false, message: 'Channel not found' });
 
     const server = await ServerModel.findById(channel.server);
-    const isMember = server?.members.some(m => m.user.equals(req.user._id));
-    if (!isMember) return res.status(403).json({ success: false, message: 'Not a member' });
+    const actorRole = server ? getRole(server, req.user._id) : null;
+    if (!actorRole) return res.status(403).json({ success: false, message: 'Not a member' });
+
+    if (!resolveChannelPermission(channel, actorRole).canSend)
+      return res.status(403).json({ success: false, message: 'Không có quyền nhắn tin trong kênh này' });
 
     const { content, replyTo } = req.body;
     const fileUrl  = getUploadedFileUrl(req.file);

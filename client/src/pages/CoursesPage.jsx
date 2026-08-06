@@ -41,8 +41,8 @@ export default function CoursesPage() {
     else navigate('/');
   };
 
-  const handleCreateCourse = async ({ name, description }) => {
-    const course = await courseService.create(serverId, { name, description });
+  const handleCreateCourse = async ({ name, description, type }) => {
+    const course = await courseService.create(serverId, { name, description, type });
     setCourses((prev) => [...prev, course]);
     navigate(`/servers/${serverId}/courses/${course._id}`);
   };

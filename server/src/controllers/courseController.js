@@ -3,8 +3,11 @@ const ServerModel = require('../models/Server');
 const Lesson = require('../models/Lesson');
 const Assignment = require('../models/Assignment');
 const Submission = require('../models/Submission');
+const Task = require('../models/Task');
 const { getRole } = require('../utils/permissions');
-const { getCourseRole, isCourseInstructor } = require('../utils/coursePermissions');
+const { getCourseRole, isCourseInstructor, canManageCourse } = require('../utils/coursePermissions');
+
+const COURSE_TYPES = ['general', 'major'];
 
 // GET /api/servers/:serverId/courses -- chỉ thành viên server mới xem được danh sách course
 const getCourses = async (req, res) => {
@@ -36,9 +39,14 @@ const createCourse = async (req, res) => {
     const name = req.body.name?.trim();
     if (!name) return res.status(400).json({ success: false, message: 'Tên khoá học là bắt buộc' });
 
+    const type = req.body.type;
+    if (type !== undefined && !COURSE_TYPES.includes(type))
+      return res.status(400).json({ success: false, message: 'Kiểu khoá học không hợp lệ' });
+
     const course = await Course.create({
       name,
       description: req.body.description?.trim() || '',
+      type: type || 'general',
       server: server._id,
       members: [{ user: req.user._id, role: 'instructor' }],
     });
@@ -122,6 +130,7 @@ const deleteCourse = async (req, res) => {
     const assignments = await Assignment.find({ course: course._id }).select('_id');
     await Submission.deleteMany({ assignment: { $in: assignments.map((a) => a._id) } });
     await Assignment.deleteMany({ course: course._id });
+    await Task.deleteMany({ course: course._id });
     await Lesson.deleteMany({ course: course._id });
     await course.deleteOne();
 

@@ -3,13 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { messageService, channelService, serverService, dmService } from '../services';
 import AttachmentPreview from '../components/common/AttachmentPreview';
 import ReactionPicker from '../components/common/ReactionPicker';
+import MessageContent from '../components/common/MessageContent';
 import { formatFileSize, MAX_FILE_SIZE } from '../utils/file';
+import { isMentioned } from '../utils/mentions';
 import useAuth   from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
 import useServerSelect from '../hooks/useServerSelect';
 import ServerSidebar from '../components/server/ServerSidebar';
 import ChannelSidebar from '../components/channel/ChannelSidebar';
 import CreateChannelModal from '../components/channel/CreateChannelModal';
+import ChannelSettingsModal from '../components/channel/ChannelSettingsModal';
 import InviteModal from '../components/server/InviteModal';
 import JoinServerModal from '../components/server/JoinServerModal';
 import MemberListPanel from '../components/server/MemberListPanel';
@@ -18,6 +21,7 @@ import ServerSettingsModal from '../components/server/ServerSettingsModal';
 import NicknameModal from '../components/server/NicknameModal';
 import PinnedMessagesModal from '../components/channel/PinnedMessagesModal';
 import { getRole, canDeleteMessage, getDisplayName } from '../utils/permissions';
+import { resolveChannelPermission } from '../utils/channelPermissions';
 
 // Thêm/cập nhật/xoá 1 tin nhắn khỏi danh sách ghim, dùng chung cho cả REST response
 // (handleTogglePin) lẫn socket event ('message_pinned') để tránh lặp code 2 nơi.
@@ -54,6 +58,7 @@ export default function ChannelPage() {
   const [showSearch, setShowSearch] = useState(false);
   const [showPinned, setShowPinned] = useState(false);
   const [renamingChannel, setRenamingChannel] = useState(null);
+  const [permissionsChannel, setPermissionsChannel] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
@@ -71,11 +76,20 @@ export default function ChannelPage() {
   // Load dữ liệu ban đầu
   useEffect(() => {
     serverService.getOne(serverId).then(setServer);
-    channelService.getAll(serverId).then(setChannels);
-    messageService.getAll(channelId).then(setMessages);
+    channelService.getAll(serverId).then((chs) => {
+      setChannels(chs);
+      // getChannels() ở backend chỉ trả về kênh mà mình có quyền xem -- nếu kênh đang mở
+      // (từ URL) không còn trong danh sách này (bị giới hạn quyền, hoặc đã bị xoá), tự động
+      // nhảy sang kênh khả dụng khác thay vì hiện trang trắng/lỗi.
+      if (!chs.some((c) => c._id === channelId)) {
+        if (chs.length > 0) navigate(`/channels/${serverId}/${chs[0]._id}`, { replace: true });
+        else navigate('/', { replace: true });
+      }
+    });
+    messageService.getAll(channelId).then(setMessages).catch(() => setMessages([]));
     // Tải riêng danh sách tin đã ghim (không giới hạn theo trang như getAll ở trên) --
     // xem giải thích trong messageController.js#getPinnedMessages.
-    messageService.getPinned(channelId).then(setPinnedMessages);
+    messageService.getPinned(channelId).then(setPinnedMessages).catch(() => setPinnedMessages([]));
   }, [serverId, channelId]);
 
   // Socket: join channel và lắng nghe sự kiện
@@ -149,6 +163,7 @@ export default function ChannelPage() {
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim() && !attachedFile) return;
+    if (!canSendInChannel) return;
 
     if (attachedFile) {
       // Có file đính kèm -> bắt buộc gửi qua REST (multipart/form-data),
@@ -217,6 +232,7 @@ export default function ChannelPage() {
   const currentChannel = channels.find(c => c._id === channelId);
   const actorRole = getRole(server, user?._id);
   const canCreateChannel = actorRole === 'owner';
+  const { canSend: canSendInChannel } = resolveChannelPermission(currentChannel, actorRole);
   const myNickname = server?.members?.find(m => (m.user?._id || m.user) === user?._id)?.nickname || '';
   const myDisplayName = getDisplayName(server, user?._id, user?.username);
 
@@ -243,6 +259,12 @@ export default function ChannelPage() {
       if (remaining.length > 0) navigate(`/channels/${serverId}/${remaining[0]._id}`);
       else navigate('/');
     }
+  };
+
+  const handleUpdateChannelPermissions = async (overrides) => {
+    const updated = await channelService.updatePermissions(serverId, permissionsChannel._id, overrides);
+    setChannels(prev => prev.map(c => c._id === updated._id ? updated : c));
+    setPermissionsChannel(null);
   };
 
   // Tham gia 1 server khác bằng mã mời -> nhảy vào channel đầu tiên của server đó
@@ -293,12 +315,6 @@ export default function ChannelPage() {
     setServer(updated);
     setServers(prev => prev.map(s => s._id === updated._id ? updated : s));
     setShowServerSettings(false);
-  };
-
-  const handleUploadServerAvatar = async (file) => {
-    const updated = await serverService.uploadAvatar(serverId, file);
-    setServer(updated);
-    setServers(prev => prev.map(s => s._id === updated._id ? updated : s));
   };
 
   const handleDeleteServer = async () => {
@@ -375,6 +391,7 @@ export default function ChannelPage() {
         onInviteClick={() => setShowInvite(true)}
         onRenameChannelClick={(ch) => setRenamingChannel(ch)}
         onDeleteChannelClick={handleDeleteChannel}
+        onChannelSettingsClick={(ch) => setPermissionsChannel(ch)}
         isOwner={actorRole === 'owner'}
         onSettingsClick={() => setShowServerSettings(true)}
         onNicknameClick={() => setShowNickname(true)}
@@ -396,12 +413,18 @@ export default function ChannelPage() {
         channel={renamingChannel}
       />
 
+      <ChannelSettingsModal
+        isOpen={!!permissionsChannel}
+        onClose={() => setPermissionsChannel(null)}
+        channel={permissionsChannel}
+        onSave={handleUpdateChannelPermissions}
+      />
+
       <ServerSettingsModal
         isOpen={showServerSettings}
         onClose={() => setShowServerSettings(false)}
         server={server}
         onSave={handleUpdateServer}
-        onUploadAvatar={handleUploadServerAvatar}
         onDeleteServer={handleDeleteServer}
       />
 
@@ -450,6 +473,9 @@ export default function ChannelPage() {
             <span className="text-cm-muted text-lg">#</span>
             <span className="text-white font-semibold">{currentChannel?.name}</span>
           </div>
+          {/* Icon tương tác ở header phóng to (text-base, padding rộng hơn, hover có nền)
+              để dễ bấm hơn, đặc biệt trên màn hình cảm ứng. Nút 📌 đặt ngay cạnh 🔍 tìm
+              kiếm theo đúng yêu cầu, hiện số lượng tin đã ghim nếu > 0. */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowSearch(true)}
@@ -490,6 +516,10 @@ export default function ChannelPage() {
             // Nhóm mới khi: người đầu tiên, đổi người gửi, cách nhau quá lâu, hoặc sang ngày mới
             const showHeader = !prev || !sameAuthor || !withinGroupGap || newDay;
 
+            // Tin nhắn này có mention chính người đang xem (@everyone hoặc đúng @username
+            // của họ) hay không -- dùng để tô vàng cả khung tin nhắn cho dễ nhận biết.
+            const mentionsMe = isMentioned(msg.content, user?.username);
+
             return (
               <div key={msg._id}>
                 {newDay && (
@@ -501,7 +531,11 @@ export default function ChannelPage() {
                     <div className="flex-1 h-px bg-cm-border" />
                   </div>
                 )}
-                <div className={`flex gap-3 ${showHeader && !newDay ? 'mt-4' : ''} group`}>
+                <div
+                  className={`flex gap-3 ${showHeader && !newDay ? 'mt-4' : ''} group rounded-md transition-colors ${
+                    mentionsMe ? 'bg-yellow-400/10 -mx-2 px-2 py-1' : ''
+                  }`}
+                >
                   {showHeader ? (
                     <div className="w-10 h-10 rounded-full bg-cm-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       {getDisplayName(server, msg.author._id, msg.author.username)[0].toUpperCase()}
@@ -541,7 +575,7 @@ export default function ChannelPage() {
                       </div>
                     ) : (
                       <p className="text-cm-text text-sm leading-relaxed">
-                        {msg.content}
+                        <MessageContent content={msg.content} currentUsername={user?.username} />
                         {msg.isEdited && <span className="text-cm-muted text-xs ml-1">(đã chỉnh sửa)</span>}
                       </p>
                     )}
@@ -579,13 +613,9 @@ export default function ChannelPage() {
                       >
                         ↩️
                       </button>
-                      <button
-                        onClick={() => handleReact(msg._id)}
-                        title="Thả cảm xúc"
-                        className="text-cm-muted hover:text-white text-xs"
-                      >
-                        😀
-                      </button>
+                      {/* Di chuột vào đây sẽ bật bảng chọn 5 emoji (👍 ❤️ 😂 😢 😡) thay vì
+                          chỉ react 👍 mặc định như trước. */}
+                      <ReactionPicker onSelect={(emoji) => handleReact(msg._id, emoji)} />
                       <button
                         onClick={() => handleTogglePin(msg._id)}
                         title={msg.isPinned ? 'Bỏ ghim' : 'Ghim tin nhắn'}
@@ -642,24 +672,41 @@ export default function ChannelPage() {
           </div>
         )}
         {mentionQuery !== null && (
-  <div className="mx-4 mb-1 bg-cm-bg border border-cm-border rounded shadow-lg max-h-40 overflow-y-auto">
-    {server?.members
-      ?.filter(m => m.user?.username?.toLowerCase().startsWith(mentionQuery.toLowerCase()))
-      .map(m => (
-        <button
-          key={m.user._id}
-          type="button"
-          onClick={() => insertMention(m.user.username)}
-          className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-cm-text hover:bg-cm-input text-left"
-        >
-          <div className="w-5 h-5 rounded-full bg-cm-accent flex items-center justify-center text-white text-[10px] font-bold">
-            {m.user.username?.[0]?.toUpperCase()}
+          <div className="mx-4 mb-1 bg-cm-bg border border-cm-border rounded shadow-lg max-h-40 overflow-y-auto">
+            {/* @everyone luôn được gợi ý đầu tiên khi khớp với chuỗi đang gõ, tách biệt
+                khỏi danh sách thành viên thật vì nó không nằm trong server.members. */}
+            {'everyone'.startsWith(mentionQuery.toLowerCase()) && (
+              <button
+                type="button"
+                onClick={() => insertMention('everyone')}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-cm-text hover:bg-cm-input text-left"
+              >
+                <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                  @
+                </div>
+                <span className="truncate">
+                  <span className="font-semibold">everyone</span>
+                  <span className="text-cm-muted text-xs ml-1.5">Thông báo cho tất cả thành viên</span>
+                </span>
+              </button>
+            )}
+            {server?.members
+              ?.filter(m => m.user?.username?.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+              .map(m => (
+                <button
+                  key={m.user._id}
+                  type="button"
+                  onClick={() => insertMention(m.user.username)}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-cm-text hover:bg-cm-input text-left"
+                >
+                  <div className="w-5 h-5 rounded-full bg-cm-accent flex items-center justify-center text-white text-[10px] font-bold">
+                    {m.user.username?.[0]?.toUpperCase()}
+                  </div>
+                  {m.user.username}
+                </button>
+              ))}
           </div>
-          {m.user.username}
-        </button>
-      ))}
-  </div>
-)}
+        )}
 
         {attachedFile && (
           <div className="mx-4 mb-1 px-3 py-1.5 bg-cm-input rounded flex items-center gap-2 text-xs">
@@ -671,39 +718,47 @@ export default function ChannelPage() {
         )}
         {fileError && <p className="mx-4 mb-1 text-red-400 text-xs">{fileError}</p>}
 
-        <form onSubmit={sendMessage} className="px-4 pb-4">
-          {/* Icon đính kèm/gửi phóng to (text-xl) + bo tròn nền khi hover cho vùng bấm rộng hơn */}
-          <div className="bg-cm-input rounded-lg flex items-center px-2 gap-1">
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              title="Đính kèm file (tối đa 8MB)"
-              className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-3 rounded-full flex-shrink-0 transition-colors"
-            >
-              📎
-            </button>
-            <input
-              value={input}
-              onChange={handleTyping}
-              onBlur={() => socket?.emit('stop_typing', { channelId })}
-              placeholder={`Nhắn tin #${currentChannel?.name || '...'}`}
-              className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted min-w-0"
-            />
-            <button
-              type="submit"
-              title="Gửi"
-              className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-2 rounded-full transition-colors flex-shrink-0"
-            >
-              ➤
-            </button>
+        {canSendInChannel ? (
+          <form onSubmit={sendMessage} className="px-4 pb-4">
+            {/* Icon đính kèm/gửi phóng to (text-xl) + bo tròn nền khi hover cho vùng bấm rộng hơn */}
+            <div className="bg-cm-input rounded-lg flex items-center px-2 gap-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Đính kèm file (tối đa 8MB)"
+                className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-3 rounded-full flex-shrink-0 transition-colors"
+              >
+                📎
+              </button>
+              <input
+                value={input}
+                onChange={handleTyping}
+                onBlur={() => socket?.emit('stop_typing', { channelId })}
+                placeholder={`Nhắn tin #${currentChannel?.name || '...'}`}
+                className="flex-1 bg-transparent text-cm-text text-sm py-3 outline-none placeholder-cm-muted min-w-0"
+              />
+              <button
+                type="submit"
+                title="Gửi"
+                className="text-cm-muted hover:text-white hover:bg-cm-border text-xl px-2.5 py-2 rounded-full transition-colors flex-shrink-0"
+              >
+                ➤
+              </button>
+            </div>
+          </form>
+        ) : (
+          // Role hiện tại chỉ được xem, không được nhắn tin trong kênh này (cấu hình qua
+          // "🔒 Cài đặt quyền" ở menu quản lý channel).
+          <div className="mx-4 mb-4 px-3 py-3 bg-cm-input rounded-lg text-center text-cm-muted text-xs">
+            🔒 Bạn chỉ có quyền xem kênh này, không thể nhắn tin.
           </div>
-        </form>
+        )}
       </div>
 
       {showMembers && (

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   serverService, courseService, channelService,
-  lessonService, assignmentService,
+  lessonService, assignmentService, taskService,
 } from '../services';
 import useAuth from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
@@ -16,10 +16,12 @@ import LessonModal from '../components/course/LessonModal';
 import LessonList from '../components/course/LessonList';
 import AssignmentModal from '../components/course/AssignmentModal';
 import AssignmentList from '../components/course/AssignmentList';
+import TaskModal from '../components/course/TaskModal';
+import TaskBoard from '../components/course/TaskBoard';
 import CourseMembersPanel from '../components/course/CourseMembersPanel';
 import GradebookTable from '../components/course/GradebookTable';
 import { getRole } from '../utils/permissions';
-import { getCourseRole, canManageCourse, isCourseInstructor } from '../utils/coursePermissions';
+import { getCourseRole, canManageCourse, isCourseInstructor, isMajorCourse, COURSE_TYPE_LABEL } from '../utils/coursePermissions';
 
 const ROLE_LABEL = { instructor: 'Instructor', ta: 'TA', student: 'Student' };
 const TABS = [
@@ -42,6 +44,7 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [tab, setTab] = useState('lessons');
   const [loadingCourse, setLoadingCourse] = useState(true);
   const [notEnrolled, setNotEnrolled] = useState(false);
@@ -53,6 +56,8 @@ export default function CourseDetailPage() {
   const [editingLesson, setEditingLesson] = useState(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
     serverService.getAll().then(setServers);
@@ -66,6 +71,7 @@ export default function CourseDetailPage() {
   const loadCourse = () => courseService.getOne(courseId).then(setCourse);
   const loadLessons = () => lessonService.getAll(courseId).then(setLessons).catch(() => {});
   const loadAssignments = () => assignmentService.getAll(courseId).then(setAssignments).catch(() => {});
+  const loadTasks = () => taskService.getAll(courseId).then(setTasks).catch(() => {});
 
   useEffect(() => {
     // Reset NGAY khi đổi course (kể cả trước khi API trả lời), tránh hiện tượng
@@ -75,6 +81,7 @@ export default function CourseDetailPage() {
     setCourse(null);
     setLessons([]);
     setAssignments([]);
+    setTasks([]);
     setNotEnrolled(false);
     setLoadingCourse(true);
 
@@ -84,7 +91,9 @@ export default function CourseDetailPage() {
         if (cancelled) return;
         setCourse(c);
         loadLessons();
-        loadAssignments();
+        // Đại cương -> Bài tập; Chuyên ngành -> Nhiệm vụ (2 hệ chức năng loại trừ nhau).
+        if (isMajorCourse(c)) loadTasks();
+        else loadAssignments();
       })
       .catch((err) => {
         if (cancelled) return;
@@ -116,6 +125,16 @@ export default function CourseDetailPage() {
   const myCourseRole = course ? getCourseRole(course, user?._id) : null;
   const canManage = canManageCourse(myCourseRole);
   const isInstructor = isCourseInstructor(myCourseRole);
+  const isMajor = isMajorCourse(course);
+
+  const tabs = [
+    { key: 'lessons', label: '📚 Bài học' },
+    isMajor
+      ? { key: 'tasks', label: '🧩 Nhiệm vụ' }
+      : { key: 'assignments', label: '📝 Bài tập' },
+    { key: 'members', label: '👥 Thành viên' },
+    ...(isMajor ? [] : [{ key: 'gradebook', label: '📊 Bảng điểm', instructorOnly: true }]),
+  ];
 
   const handleBackToChannels = async () => {
     const channels = await channelService.getAll(serverId);
@@ -123,8 +142,8 @@ export default function CourseDetailPage() {
     else navigate('/');
   };
 
-  const handleCreateCourse = async ({ name, description }) => {
-    const c = await courseService.create(serverId, { name, description });
+  const handleCreateCourse = async ({ name, description, type }) => {
+    const c = await courseService.create(serverId, { name, description, type });
     setCourses((prev) => [...prev, c]);
     navigate(`/servers/${serverId}/courses/${c._id}`);
   };
@@ -175,6 +194,26 @@ export default function CourseDetailPage() {
     if (!window.confirm(`Xoá bài tập "${assignment.title}"? Toàn bộ bài nộp liên quan cũng sẽ mất.`)) return;
     await assignmentService.remove(assignment._id);
     loadAssignments();
+  };
+
+  // ── Tasks (course chuyên ngành) ──
+  const handleSaveTask = async ({ title, description, deadline, assigneeId }, file) => {
+    if (editingTask) {
+      await taskService.update(editingTask._id, { title, description, deadline, assigneeId });
+    } else {
+      await taskService.create(courseId, { title, description, deadline }, file);
+    }
+    setEditingTask(null);
+    loadTasks();
+  };
+  const handleDeleteTask = async (task) => {
+    if (!window.confirm(`Xoá nhiệm vụ "${task.title}"?`)) return;
+    await taskService.remove(task._id);
+    loadTasks();
+  };
+  const handleChangeTaskStatus = async (task, status) => {
+    await taskService.updateStatus(task._id, status);
+    loadTasks();
   };
 
   // ── Members ──
@@ -237,6 +276,13 @@ export default function CourseDetailPage() {
         onSave={handleSaveAssignment}
         assignment={editingAssignment}
       />
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
+        onSave={handleSaveTask}
+        task={editingTask}
+        members={course?.members || []}
+      />
 
       <div className="flex-1 flex flex-col bg-cm-surface overflow-hidden">
         {loadingCourse ? (
@@ -259,6 +305,11 @@ export default function CourseDetailPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-white font-bold text-lg truncate">{course?.name}</h1>
+                {course?.type && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-cm-input text-cm-muted flex-shrink-0">
+                    {COURSE_TYPE_LABEL[course.type]}
+                  </span>
+                )}
                 {myCourseRole && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-cm-input text-cm-accent flex-shrink-0">
                     {ROLE_LABEL[myCourseRole]}
@@ -290,7 +341,7 @@ export default function CourseDetailPage() {
           </div>
 
           <div className="flex gap-1 mt-4">
-            {TABS.filter((t) => !t.instructorOnly || canManage).map((t) => (
+            {tabs.filter((t) => !t.instructorOnly || canManage).map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
@@ -343,6 +394,18 @@ export default function CourseDetailPage() {
                 onDelete={handleDeleteAssignment}
               />
             </div>
+          )}
+
+          {tab === 'tasks' && (
+            <TaskBoard
+              tasks={tasks}
+              canManage={canManage}
+              currentUserId={user?._id}
+              onCreateClick={() => setShowTaskModal(true)}
+              onEdit={(t) => { setEditingTask(t); setShowTaskModal(true); }}
+              onDelete={handleDeleteTask}
+              onChangeStatus={handleChangeTaskStatus}
+            />
           )}
 
           {tab === 'gradebook' && canManage && (

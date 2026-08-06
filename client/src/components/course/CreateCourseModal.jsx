@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import Modal from '../common/Modal';
+import { COURSE_TYPES } from '../../utils/coursePermissions';
 
 // Modal tạo khoá học mới trong 1 server (chỉ owner/moderator server mới thấy nút này).
 // Người tạo tự động trở thành instructor của khoá học (xử lý ở backend).
+// Milestone 4: chọn kiểu khoá học (Đại cương / Chuyên ngành) ngay lúc tạo -- KHÔNG đổi
+// được sau đó, vì 2 kiểu dùng 2 hệ chức năng khác nhau (Bài tập vs Nhiệm vụ).
 export default function CreateCourseModal({ isOpen, onClose, onCreate }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [type, setType] = useState('general');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleClose = () => {
     setName('');
     setDescription('');
+    setType('general');
     setError('');
     onClose();
   };
@@ -22,7 +27,7 @@ export default function CreateCourseModal({ isOpen, onClose, onCreate }) {
     setLoading(true);
     setError('');
     try {
-      await onCreate({ name: name.trim(), description: description.trim() });
+      await onCreate({ name: name.trim(), description: description.trim(), type });
       handleClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Tạo khoá học thất bại');
@@ -47,6 +52,21 @@ export default function CreateCourseModal({ isOpen, onClose, onCreate }) {
             placeholder="VD: Công nghệ phần mềm"
             className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
           />
+        </div>
+        <div>
+          <label className="text-cm-muted text-xs block mb-1">Kiểu khoá học</label>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="w-full bg-cm-input text-cm-text rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cm-accent"
+          >
+            {COURSE_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+          <p className="text-cm-muted text-[11px] mt-1">
+            {COURSE_TYPES.find((t) => t.value === type)?.hint} — không đổi được sau khi tạo.
+          </p>
         </div>
         <div>
           <label className="text-cm-muted text-xs block mb-1">Mô tả (tuỳ chọn)</label>

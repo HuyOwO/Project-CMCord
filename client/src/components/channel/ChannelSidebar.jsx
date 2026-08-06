@@ -22,6 +22,7 @@ export default function ChannelSidebar({
   onInviteClick,
   onRenameChannelClick,
   onDeleteChannelClick,
+  onChannelSettingsClick,
   isOwner = false,
   onSettingsClick,
   onNicknameClick,
@@ -129,6 +130,9 @@ export default function ChannelSidebar({
               }`}
             >
               <span>#</span> <span className="truncate">{ch.name}</span>
+              {ch.permissionOverrides?.some((o) => !o.canView || !o.canSend) && (
+                <span title="Kênh có giới hạn quyền theo role" className="text-[10px] flex-shrink-0">🔒</span>
+              )}
             </button>
 
             {canCreateChannel && (
@@ -147,13 +151,21 @@ export default function ChannelSidebar({
             {openMenuId === ch._id && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
-                <div className="absolute right-1 top-full mt-1 z-50 bg-cm-bg border border-cm-border rounded shadow-lg py-1 w-32">
+                <div className="absolute right-1 top-full mt-1 z-50 bg-cm-bg border border-cm-border rounded shadow-lg py-1 w-36">
                   <button
                     onClick={() => { setOpenMenuId(null); onRenameChannelClick(ch); }}
                     className="w-full text-left px-3 py-1.5 text-xs text-cm-text hover:bg-cm-input"
                   >
                     Đổi tên
                   </button>
+                  {onChannelSettingsClick && (
+                    <button
+                      onClick={() => { setOpenMenuId(null); onChannelSettingsClick(ch); }}
+                      className="w-full text-left px-3 py-1.5 text-xs text-cm-text hover:bg-cm-input"
+                    >
+                      🔒 Cài đặt quyền
+                    </button>
+                  )}
                   <button
                     onClick={() => { setOpenMenuId(null); onDeleteChannelClick(ch); }}
                     className="w-full text-left px-3 py-1.5 text-xs text-red-400 hover:bg-cm-input"

@@ -5,6 +5,7 @@ const {
 } = require('../controllers/courseController');
 const { getLessons, createLesson } = require('../controllers/lessonController');
 const { getAssignments, createAssignment } = require('../controllers/assignmentController');
+const { getTasks, createTask } = require('../controllers/taskController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
@@ -26,5 +27,9 @@ router.post('/:courseId/lessons', upload.single('file'), createLesson);
 
 router.get('/:courseId/assignments',  getAssignments);
 router.post('/:courseId/assignments', upload.single('file'), createAssignment);
+
+// Milestone 4: Nhiệm vụ -- chỉ áp dụng cho course type='major' (kiểm tra trong controller)
+router.get('/:courseId/tasks',  getTasks);
+router.post('/:courseId/tasks', upload.single('file'), createTask);
 
 module.exports = router;

@@ -130,6 +130,7 @@ DELETE /api/servers/:id/bans/:userId
 GET    /api/servers/:serverId/channels
 POST   /api/servers/:serverId/channels
 PATCH  /api/servers/:serverId/channels/:id
+PATCH  /api/servers/:serverId/channels/:id/permissions  # owner: giới hạn Xem/Nhắn theo role (moderator/member)
 DELETE /api/servers/:serverId/channels/:id
 
 # Tin nhắn trong channel
