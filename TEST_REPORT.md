@@ -66,9 +66,9 @@ cd client && npm test     # Vitest, có coverage report
 ### 4.1 Backend (Jest)
 
 ```
-Test Suites: 4 passed, 4 total
-Tests:       41 passed, 41 total
-Time:        ~1.6 s
+Test Suites: 8 passed, 8 total
+Tests:       84 passed, 84 total
+Time:        ~3.3 s
 ```
 
 | File test | Số test case | Kết quả |
@@ -77,37 +77,77 @@ Time:        ~1.6 s
 | `tests/utils/coursePermissions.test.js` | 10 | ✅ 10/10 pass |
 | `tests/utils/fileUrl.test.js` | 5 | ✅ 5/5 pass |
 | `tests/controllers/authController.test.js` | 12 | ✅ 12/12 pass |
-| **Tổng** | **41** | **✅ 41/41 pass (100%)** |
+| `tests/utils/channelPermissions.test.js` | —* | ✅ pass |
+| `tests/controllers/channelController.test.js` | —* | ✅ pass |
+| `tests/controllers/taskController.test.js` | —* | ✅ pass |
+| `tests/controllers/messageController.test.js` | —* | ✅ pass |
+| **Tổng** | **84** | **✅ 84/84 pass (100%)** |
 
-Coverage (giới hạn trong các file nằm trong phạm vi đợt kiểm thử này — xem `jest.config.js`):
+\* *Lần chạy này dùng chế độ mặc định (không `--verbose`) nên Jest không in số case riêng
+cho 4 file mới; tổng 84 là số chính xác Jest báo cáo. Muốn biết số case từng file, chạy lại
+với `npx jest --verbose`.*
+
+Coverage (đợt này đo trên **toàn bộ `server/src`**, không còn giới hạn phạm vi như lần
+chạy trước):
 
 ```
------------------------|---------|----------|---------|---------|
-File                   | % Stmts | % Branch | % Funcs | % Lines |
------------------------|---------|----------|---------|---------|
-controllers/authController.js |  100  |   100    |   100   |   100   |
-utils/permissions.js          |  100  |   100    |   100   |   100   |
-utils/coursePermissions.js    |  100  |   100    |   100   |   100   |
-utils/fileUrl.js              |  100  |   100    |   100   |   100   |
-models/User.js                |   0   |    0     |    0    |    0    |  <- bị mock trong test, xem giải thích bên dưới
------------------------|---------|----------|---------|---------|
-All files (phạm vi đợt này)   | 83.33 |  95.12   |  83.33  |  81.81  |
+--------------------------|---------|----------|---------|---------|-----------------------------------------------
+File                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+--------------------------|---------|----------|---------|---------|-----------------------------------------------
+All files                 |   14.65 |    17.39 |   14.51 |   15.04 |
+ src                      |       0 |        0 |       0 |       0 |
+  app.js                  |       0 |        0 |       0 |       0 | 1-68
+ src/config               |       0 |        0 |       0 |       0 |
+  cloudinary.js           |       0 |        0 |     100 |       0 | 1-20
+  db.js                   |       0 |        0 |       0 |       0 | 1-13
+ src/controllers          |   16.18 |       15 |   11.02 |   17.84 |
+  assignmentController.js |       0 |        0 |       0 |       0 | 1-124
+  authController.js       |     100 |      100 |     100 |     100 |
+  channelController.js    |      50 |    40.47 |   33.33 |   54.66 | 23,29-43,49-69,75-86,131
+  courseController.js     |       0 |        0 |       0 |       0 | 1-237
+  dmController.js         |       0 |        0 |       0 |       0 | 1-231
+  friendController.js     |       0 |        0 |       0 |       0 | 1-141
+  lessonController.js     |       0 |        0 |       0 |       0 | 1-123
+  messageController.js    |   35.65 |    32.35 |   18.18 |   37.71 | 30,39-56,79,93,99-117,123-145,150-159,165-189
+  searchController.js     |       0 |        0 |       0 |       0 | 1-83
+  serverController.js     |       0 |        0 |       0 |       0 | 1-266
+  submissionController.js |       0 |        0 |       0 |       0 | 1-117
+  taskController.js       |   69.56 |    61.42 |   55.55 |   77.77 | 13-25,62,68-78,99-100,122,154,172
+  userController.js       |       0 |        0 |       0 |       0 | 1-97
+ src/jobs                 |       0 |        0 |       0 |       0 |
+  deadlineReminderJob.js  |       0 |        0 |       0 |       0 | 1-58
+ src/middleware           |       0 |        0 |       0 |       0 |
+  authMiddleware.js       |       0 |        0 |       0 |       0 | 1-21
+  uploadMiddleware.js     |       0 |        0 |       0 |       0 | 1-47
+ src/models               |       0 |        0 |       0 |       0 |  <- toàn bộ schema Mongoose, chưa được import trong test nào
+ src/routes               |       0 |      100 |     100 |       0 |  <- route definition, chưa được require trong test nào
+ src/socket               |       0 |        0 |       0 |       0 |
+  socketHandler.js        |       0 |        0 |       0 |       0 | 1-156
+ src/utils                |     100 |      100 |     100 |     100 |
+  channelPermissions.js   |     100 |      100 |     100 |     100 |
+  coursePermissions.js    |     100 |      100 |     100 |     100 |
+  fileUrl.js              |     100 |      100 |     100 |     100 |
+  permissions.js          |     100 |      100 |     100 |     100 |
+  reactions.js            |     100 |      100 |     100 |     100 |
+--------------------------|---------|----------|---------|---------|-----------------------------------------------
 ```
 
-> **Vì sao `User.js` hiện 0%:** file test authController dùng `jest.mock('../models/User')`
-> để thay Model bằng hàm giả (`jest.fn()`), tránh phải kết nối MongoDB thật khi chạy
-> unit test. Vì vậy nội dung thật của `User.js` (hash password, `comparePassword`...)
-> không được nạp/thực thi trong lượt test này — đây là lựa chọn thiết kế có chủ đích,
-> không phải lỗi. Logic bên trong `User.js` (hash bằng bcrypt, so khớp mật khẩu) là
-> code của thư viện `bcryptjs` gọi qua, rủi ro thấp hơn nhiều so với logic phân quyền
-> tự viết — nên được ưu tiên thấp hơn trong đợt kiểm thử này.
+> **Vì sao tỉ lệ tổng giảm còn ~14.65% dù số test tăng gấp đôi (41 → 84):** lần chạy
+> trước coverage chỉ đo trong nhóm file đã có test để bảng dễ đọc; lần này đo trên toàn
+> bộ `server/src` nên các controller/model/route **chưa có test** (assignment, course,
+> dm, friend, lesson, search, server, submission, user, và toàn bộ `models`, `routes`,
+> `middleware`, `jobs`, `config`, `socket`) kéo tỉ lệ tổng xuống — đây là con số phản ánh
+> đúng thực tế, không phải các test hiện có bị yếu đi. Xem §8 Hạn chế.
+>
+> `models/User.js` vẫn 0% vì lý do đã nêu ở lần chạy trước: `authController.test.js`
+> dùng `jest.mock('../models/User')` để không phải kết nối MongoDB thật.
 
 ### 4.2 Frontend (Vitest)
 
 ```
-Test Files  4 passed (4)
-     Tests  34 passed (34)
-  Duration  ~1.7 s
+Test Files  5 passed (5)
+     Tests  39 passed (39)
+  Duration  ~1.15 s
 ```
 
 | File test | Số test case | Kết quả |
@@ -115,29 +155,42 @@ Test Files  4 passed (4)
 | `src/utils/__tests__/permissions.test.js` | 14 | ✅ 14/14 pass |
 | `src/utils/__tests__/coursePermissions.test.js` | 6 | ✅ 6/6 pass |
 | `src/utils/__tests__/status.test.js` | 9 | ✅ 9/9 pass |
+| `src/utils/__tests__/channelPermissions.test.js` | 5 | ✅ 5/5 pass |
 | `src/utils/__tests__/file.test.js` | 5 | ✅ 5/5 pass |
-| **Tổng** | **34** | **✅ 34/34 pass (100%)** |
+| **Tổng** | **39** | **✅ 39/39 pass (100%)** |
 
 Coverage (giới hạn `src/utils/**`, xem `vitest.config.js`):
 
 ```
--------------------|---------|----------|---------|---------|
-File               | % Stmts | % Branch | % Funcs | % Lines |
--------------------|---------|----------|---------|---------|
-coursePermissions.js|   100   |   100    |   100   |   100   |
-file.js             |   100   |   100    |   100   |   100   |
-permissions.js      |   100   |   100    |   100   |   100   |
-status.js           |   100   |   100    |   100   |   100   |
-All files            |   100   |   100    |   100   |   100   |
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   75.83 |    98.33 |   84.61 |   75.83 |
+ channelPermissions.js* |   100 |      100 |     100 |     100 |
+ coursePermissions.js*  |   100 |      100 |      75 |     100 |
+ file.js           |     100 |      100 |     100 |     100 |
+ mentions.js       |       0 |        0 |       0 |       0 | 1-31
+ permissions.js    |     100 |      100 |     100 |     100 |
+ status.js         |     100 |      100 |     100 |     100 |
+-------------------|---------|----------|---------|---------|-------------------
 ```
+
+\* *Terminal cắt tên 2 file thành `...Permissions.js`; suy đoán theo thứ tự alphabet
+trong bảng gốc là `channelPermissions.js` rồi `coursePermissions.js` — nhóm nên chạy lại
+`npx vitest run --coverage` với terminal rộng hơn để xác nhận đúng tên trước khi nộp.
+Nếu đúng, `coursePermissions.js` có 1 hàm chưa được test (`% Funcs` = 75%) — nên bổ sung
+case cho hàm đó.*
+
+> `mentions.js` (helper xử lý gợi ý @mention) hiện 0% vì đây là tiện ích mới, chưa nằm
+> trong phạm vi kiểm thử đợt này — xem §8 Hạn chế.
 
 ### 4.3 Tổng hợp
 
 | | Số test case | Pass | Fail | Tỉ lệ pass |
 |---|---|---|---|---|
-| Backend | 41 | 41 | 0 | 100% |
-| Frontend | 34 | 34 | 0 | 100% |
-| **Tổng cộng** | **75** | **75** | **0** | **100%** |
+| Backend | 84 | 84 | 0 | 100% |
+| Frontend | 39 | 39 | 0 | 100% |
+| **Tổng cộng** | **123** | **123** | **0** | **100%** |
 
 ## 5. Chi tiết test case tự động theo nhóm chức năng
 
@@ -259,11 +312,15 @@ trong quá trình phát triển Milestone 2, đã được khắc phục trướ
 
 ## 8. Hạn chế & hướng phát triển tiếp theo
 
-- **Chưa có test tự động cho các controller còn lại** (server, channel, message, dm,
-  friend, search, course, lesson, assignment, submission). Đợt này chỉ làm mẫu 1
-  controller (`authController`) để minh hoạ pattern mock Model — nhóm có thể áp dụng
-  đúng pattern này (xem `server/tests/controllers/authController.test.js`) để mở rộng
-  dần sang các controller khác.
+- **Đã mở rộng test sang 3 controller nữa** (`channelController`, `taskController`,
+  `messageController`) ngoài `authController`, nhưng coverage 3 file này còn thấp
+  (lần lượt ~55% / ~78% / ~38% theo số dòng) — mới phủ các nhánh chính, chưa phủ hết
+  trường hợp biên. **Vẫn chưa có test tự động** cho `server`, `dm`, `friend`, `search`,
+  `course`, `lesson`, `assignment`, `submission`, `user` — có thể áp dụng đúng pattern
+  mock Model đã dùng ở `authController.test.js` (xem
+  `server/tests/controllers/authController.test.js`) để mở rộng dần.
+- **Frontend có thêm 1 tiện ích mới chưa có test:** `mentions.js` (xử lý gợi ý @mention)
+  — nên bổ sung `mentions.test.js` ở đợt tiếp theo.
 - **Chưa có test tích hợp (integration test) với MongoDB thật.** Có thể bổ sung bằng
   `mongodb-memory-server` (MongoDB giả lập chạy trong bộ nhớ, không cần cài MongoDB
   thật) ở đợt phát triển tiếp theo.
@@ -276,9 +333,13 @@ trong quá trình phát triển Milestone 2, đã được khắc phục trướ
 
 ## 9. Kết luận
 
-Bộ kiểm thử tự động (75 test case: 41 backend + 34 frontend, **100% pass**) tập trung
+Bộ kiểm thử tự động (123 test case: 84 backend + 39 frontend, **100% pass**) tập trung
 đúng vào phần rủi ro cao nhất của dự án — logic phân quyền 2 tầng (Server và Course) và
-luồng xác thực tài khoản — nơi một lỗi nhỏ có thể dẫn tới lộ quyền hoặc chiếm tài khoản.
+luồng xác thực tài khoản — nơi một lỗi nhỏ có thể dẫn tới lộ quyền hoặc chiếm tài khoản,
+và đã mở rộng thêm sang 3 controller nghiệp vụ chính (channel, task, message). Coverage
+đo trên toàn bộ mã nguồn (~14.65% backend) cho thấy rõ những phần còn lại (server, dm,
+friend, search, course, lesson, assignment, submission, user) vẫn cần được test ở đợt
+sau — đây là số liệu minh bạch, không phải dấu hiệu chất lượng kém của các test hiện có.
 Kết hợp với bộ test case thủ công bao phủ toàn bộ User Story trong `PRODUCT_BACKLOG.md`
 và nhật ký 4 lỗi thực tế đã phát hiện & khắc phục trong quá trình phát triển, dự án đạt
 mức độ đảm bảo chất lượng phù hợp với quy mô một đồ án môn học, đồng thời minh bạch về
